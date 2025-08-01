@@ -1,0 +1,8 @@
+__pycache__/
+dist/
+build/
+tmp/
+.venv
+
+*.swp
+*.egg-info
