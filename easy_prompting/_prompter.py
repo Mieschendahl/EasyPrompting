@@ -3,7 +3,7 @@ from easy_prompting._utils import load_text, save_text, hash_str
 from easy_prompting._llm import LLM
 from easy_prompting._message import Message
 from easy_prompting._option import Option
-from typing import Optional, List, Dict, TextIO, Tuple
+from typing import Any, Optional, TextIO
 
 class ChoiceError(Exception):
     pass
@@ -27,11 +27,11 @@ class Prompter:
     def get_llm(self) -> LLM:
         return self.llm
     
-    def set_messages(self, messages: Optional[List[Message]] = None) -> 'Prompter':
+    def set_messages(self, messages: Optional[list[Message]] = None) -> 'Prompter':
         self.messages = [] if messages is None else messages
         return self
     
-    def get_messages(self) -> List[Message]:
+    def get_messages(self) -> list[Message]:
         return self.messages
     
     def set_cache_path(self, cache_path: Optional[str | Path] = None) -> 'Prompter':
@@ -48,12 +48,12 @@ class Prompter:
     def get_logger(self) -> Optional[TextIO]:
         return self.logger
 
-    def set_interaction(self, interaction: bool = False) -> 'Prompter':
-        self.interaction = interaction
+    def set_interaction(self, interaction_role: Optional[str] = None) -> 'Prompter':
+        self.interaction_role = interaction_role
         return self
     
-    def get_interaction(self) -> bool:
-        return self.interaction
+    def get_interaction(self) -> Optional[str]:
+        return self.interaction_role
     
     def set_summary(self, start_size: Optional[int] = None, include_size: Optional[int] = None) -> 'Prompter':
         self.start_size = start_size
@@ -63,8 +63,8 @@ class Prompter:
             assert self.include_size is not None and self.include_size > 0 and self.include_size <= self.start_size, "Invalid values chosen for include_size"
         return self
     
-    def get_summary(self) -> Dict[str, Optional[int]]:
-        return dict(start_size=self.start_size, include_size=self.include_size)
+    def get_summary(self) -> tuple[Optional[int], Optional[int]]:
+        return self.start_size, self.include_size
     
     def get_copy(self) -> 'Prompter':
         return Prompter(self.get_llm())\
@@ -72,7 +72,7 @@ class Prompter:
             .set_cache_path(self.get_cache_path())\
             .set_logger(self.get_logger())\
             .set_interaction(self.get_interaction())\
-            .set_summary(**self.get_summary())
+            .set_summary(*self.get_summary())
 
     def add_message(self, content: str, role: str = "user") -> 'Prompter':
         message = Message(content, role)
@@ -86,13 +86,13 @@ class Prompter:
         return self
     
     def add_completion(self, stop: Optional[str] = None) -> 'Prompter':
-        if self.interaction:
-            message = input("user (↵: next, x: exit): ")
+        if self.interaction_role is not None:
+            content = input(f"{self.interaction_role} (↵: next, x: exit): ")
             print()
-            if message == "x":
+            if content == "x":
                 exit(0)
-            if message != "":
-                self.add_message(message)
+            if content != "":
+                self.add_message(content, self.interaction_role)
         
         if self.cache_path is None:
             completion = self.llm.get_completion(self.messages, stop)
@@ -109,7 +109,7 @@ class Prompter:
         self.add_completion(stop)
         return self.messages[-1].content
     
-    def get_choice(self, options: List[Option]) -> Tuple[str, str]:
+    def get_choice(self, options: list[Option]) -> tuple[str, str]:
         description = "\n\n".join(option.get_description() for option in options)
         self.add_message(f"Choose one of the following options:\n\n{description}", role="developer")
         completion = self.get_completion(Option.stop)

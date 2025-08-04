@@ -11,7 +11,7 @@ if __name__ == "__main__":
     llm = GPT(model=args[0], temperature=0)
     p = Prompter(llm)\
         .set_logger(sys.stdout)\
-        .set_interaction(True)\
+        .set_interaction("user")\
         .add_message("You are an english teacher. Please answer any questions given to you.", "developer")
 
     while True:
