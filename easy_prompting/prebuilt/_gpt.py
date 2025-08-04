@@ -22,7 +22,7 @@ class GPT(LLM):
         return GPT(**self.get_config())
 
     def get_completion(self, messages: List[Message], stop: Optional[str] = None) -> str:
-        openai_messages = [{"role": message.role, "content": message.content} for message in messages]
+        openai_messages = [message.to_dict() for message in messages]
         return client.chat.completions.create(
                 messages=openai_messages,  # type:ignore
                 stop=stop,

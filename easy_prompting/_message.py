@@ -10,6 +10,9 @@ class Message:
         content = "\n".join(" | " + line for line in self.content.split("\n"))
         return f"{self.role}:\n{content}"
     
+    def __repr__(self) -> str:
+        return f"Message(role={self.role!r}, content={self.content!r})"
+    
     def to_dict(self) -> dict:
         return dict(content=self.content, role=self.role)
 
