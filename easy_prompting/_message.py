@@ -1,4 +1,4 @@
-from typing import List
+from easy_prompting._utils import pad
 
 class Message:
     def __init__(self, content: str, role: str = "user") -> None:
@@ -7,8 +7,7 @@ class Message:
         self.role = role
     
     def __str__(self) -> str:
-        content = "\n".join(" | " + line for line in self.content.split("\n"))
-        return f"{self.role}:\n{content}"
+        return f"{self.role}:\n{pad(self.content)}"
     
     def __repr__(self) -> str:
         return f"Message(role={self.role!r}, content={self.content!r})"
@@ -17,5 +16,5 @@ class Message:
         return dict(content=self.content, role=self.role)
 
     @staticmethod
-    def length(messages: List['Message']) -> int:
+    def length(messages: list['Message']) -> int:
         return sum(len(message.content) for message in messages)

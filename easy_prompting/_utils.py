@@ -31,3 +31,6 @@ def If(condition: bool, then_text: str, else_text: str = "") -> str:
     if condition:
         return then_text
     return else_text
+
+def pad(text: str, padding: str = " | ") -> str:
+    return "\n".join(f"{padding}{line}" for line in text.split("\n"))
