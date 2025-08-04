@@ -17,6 +17,7 @@ class Prompter:
             .set_messages()\
             .set_cache_path()\
             .set_logger()\
+            .set_interaction()\
             .set_summary()
 
     def set_llm(self, llm: LLM) -> 'Prompter':
@@ -46,6 +47,13 @@ class Prompter:
     
     def get_logger(self) -> Optional[TextIO]:
         return self.logger
+
+    def set_interaction(self, interaction: bool = False) -> 'Prompter':
+        self.interaction = interaction
+        return self
+    
+    def get_interaction(self) -> bool:
+        return self.interaction
     
     def set_summary(self, start_size: Optional[int] = None, include_size: Optional[int] = None) -> 'Prompter':
         self.start_size = start_size
@@ -63,6 +71,7 @@ class Prompter:
             .set_messages(self.get_messages())\
             .set_cache_path(self.get_cache_path())\
             .set_logger(self.get_logger())\
+            .set_interaction(self.get_interaction())\
             .set_summary(**self.get_summary())
 
     def add_message(self, content: str, role: str = "user") -> 'Prompter':
@@ -77,6 +86,14 @@ class Prompter:
         return self
     
     def add_completion(self, stop: Optional[str] = None) -> 'Prompter':
+        if self.interaction:
+            message = input("user (↵: next, x: exit): ")
+            print()
+            if message == "x":
+                exit(0)
+            if message != "":
+                self.add_message(message)
+        
         if self.cache_path is None:
             completion = self.llm.get_completion(self.messages, stop)
         else:
