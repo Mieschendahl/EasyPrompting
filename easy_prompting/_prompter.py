@@ -3,7 +3,7 @@ from easy_prompting._utils import load_text, save_text, hash_str
 from easy_prompting._llm import LLM
 from easy_prompting._message import Message
 from easy_prompting._option import Option
-from typing import Any, Optional, TextIO
+from typing import Optional, TextIO, Self
 
 class ChoiceError(Exception):
     pass
@@ -120,7 +120,7 @@ class Prompter:
             raise ChoiceError(f"The llm made an invalid choice: \"{name}\"")
         return name, data
 
-    def summarize(self) -> None:        
+    def summarize(self) -> 'Prompter':        
         akk = 0
         included = []
         excluded = []
@@ -150,3 +150,4 @@ class Prompter:
             role="developer"
         )
         self.set_messages([summary_message] + excluded)
+        return self
