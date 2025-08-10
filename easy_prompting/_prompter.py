@@ -68,7 +68,7 @@ class Prompter:
     
     def get_copy(self) -> 'Prompter':
         return Prompter(self.get_llm())\
-            .set_messages(self.get_messages())\
+            .set_messages(self.get_messages().copy())\
             .set_cache_path(self.get_cache_path())\
             .set_logger(self.get_logger())\
             .set_interaction(self.get_interaction())\
