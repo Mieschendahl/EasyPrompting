@@ -7,7 +7,7 @@ class Message:
         self.role = role
     
     def __str__(self) -> str:
-        return f"{self.role}:\n{pad(self.content)}"
+        return f"{self.role.upper()}:\n{pad(self.content)}"
     
     def __repr__(self) -> str:
         return f"Message(role={self.role!r}, content={self.content!r})"

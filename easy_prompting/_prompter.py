@@ -140,7 +140,9 @@ class Prompter:
                 f"Please summarize the following conversation."
                 f"\nOnly keep the most important information about the conversation in the summary."
                 f"\nOnly answer with the summary and nothing else."
-                f"\nHere is the conversation:\n```conversation\n{conversation}\n```",
+            )\
+            .add_message(
+                f"Here is the conversation:\n{conversation}",
                 role="developer"
             )\
             .get_completion()
