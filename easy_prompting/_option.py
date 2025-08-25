@@ -16,22 +16,26 @@ class Option:
         return wrap(name, Option.key_prefix, Option.key_suffix)
     
     @staticmethod
-    def describe_key(name: str) -> str:
-        return f"Write \"{Option.create_key(name)}\""
-    
-    @staticmethod
     def create_scope(text: str) -> str:
         return f"{Option.left_bracket}{pad(text, Option.padding)}{Option.right_bracket}"
+    
+    @staticmethod
+    def create_list(*list: str) -> str:
+        return "\n".join(f"{Option.bullet_point}{element}" for element in list)
+
+    @staticmethod
+    def describe_key(name: str) -> str:
+        return f"Write \"{Option.create_key(name)}\""
 
     @staticmethod
     def describe_sequence(*sequence: str) -> str:
         output = []
         for i, element in enumerate(sequence):
             if i % 2:
-                output.append(f"{Option.bullet_point}{element}")
+                output.append(element)
             else:
-                output.append(f"{Option.bullet_point}{Option.describe_key(element)}")
-        return "\n".join(output)
+                output.append(Option.describe_key(element))
+        return Option.create_list(*output)
 
     @staticmethod
     def extract_sequence(sequence_str: str, dividers: list[str]) -> list[str]:
