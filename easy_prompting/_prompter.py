@@ -1,8 +1,10 @@
+from dataclasses import dataclass
+import io
 from pathlib import Path
+from easy_prompting._option import Option
 from easy_prompting._utils import load_text, save_text, hash_str
 from easy_prompting._llm import LLM
 from easy_prompting._message import Message
-from easy_prompting._option import Option
 from typing import Optional, TextIO, Self
 
 class ChoiceError(Exception):
@@ -41,11 +43,11 @@ class Prompter:
     def get_cache_path(self) -> Optional[Path]:
         return self.cache_path
 
-    def set_logger(self, logger: Optional[TextIO] = None) -> 'Prompter':
+    def set_logger(self, logger: Optional[TextIO | io.TextIOBase] = None) -> 'Prompter':
         self.logger = logger
         return self
     
-    def get_logger(self) -> Optional[TextIO]:
+    def get_logger(self) -> Optional[TextIO | io.TextIOBase]:
         return self.logger
 
     def set_interaction(self, interaction_role: Optional[str] = None) -> 'Prompter':
@@ -87,38 +89,48 @@ class Prompter:
     
     def add_completion(self, stop: Optional[str] = None) -> 'Prompter':
         if self.interaction_role is not None:
-            content = input(f"{self.interaction_role} (↵: next, x: exit): ")
+            content = input(f"{self.interaction_role.upper()} (↵: next, x: exit): ")
             print()
             if content == "x":
                 exit(0)
             if content != "":
                 self.add_message(content, self.interaction_role)
-        
+
         if self.cache_path is None:
             completion = self.llm.get_completion(self.messages, stop)
         else:
-            file_path = self.cache_path / hash_str("\n\n".join(f"{message.role}:\n{message.content}" for message in self.messages))
+            file_path = self.cache_path / hash_str("\n\n".join(repr(message) for message in self.messages))
             completion = load_text(file_path)
             if completion is None:
                 completion = self.llm.get_completion(self.messages, stop)
                 save_text(file_path, completion)
+        if stop is not None:
+            completion += stop
         self.add_message(completion, role="assistant")
         return self
     
     def get_completion(self, stop: Optional[str] = None) -> str:
         self.add_completion(stop)
-        return self.messages[-1].content
+        completion = self.messages[-1].content
+        if stop is not None:
+            completion = completion.split(stop, 1)[0]
+        return completion
     
-    def get_choice(self, options: list[Option]) -> tuple[str, str]:
-        description = "\n\n".join(option.get_description() for option in options)
-        self.add_message(f"Choose one of the following options:\n\n{description}", role="developer")
-        completion = self.get_completion(Option.stop)
-        if Option.seperator not in completion:
-            raise ChoiceError(f"The llm did not adhere to the selection format: \"{completion}\"")
-        name, data = map(str.strip, completion.split(Option.seperator, 1))
-        if name not in {option.name for option in options}:
-            raise ChoiceError(f"The llm made an invalid choice: \"{name}\"")
-        return name, data
+    def get_choice(self, *options: Option, role: str = "user") -> tuple[str, str]:
+        self.add_message(
+                f"{Option.introduction} "
+                +
+                Option.create_scope(
+                    f"{Option.bullet_point}{Option.describe_options(*options)}"
+                ),
+                role=role
+            )
+        completion = self.get_completion(Option.create_key(Option.stop))
+        for option in options:
+            split = completion.split(Option.create_key(option.name), 1)
+            if len(split) == 2:
+                return option.name, split[1].strip()
+        raise ChoiceError(f"The LLM did not adhere to the selection format: \"{completion}\"")
 
     def summarize(self) -> 'Prompter':        
         akk = 0
@@ -131,7 +143,7 @@ class Prompter:
                 for j in range(i + 1, len(self.messages)):
                     excluded.append(self.messages[j])
                 break
-        
+
         conversation = "\n\n".join(f"{message.role}:\n{message.content}" for message in self.messages)
         summary = self.get_copy()\
             .set_messages()\
