@@ -1,6 +1,6 @@
 import re
 
-def delimit(text: str, keyword: str = "", left: str = "```", right: str = "```") -> str:
+def delimit_code(text: str, keyword: str = "", left: str = "```", right: str = "```") -> str:
     return f"{left}{keyword}\n{text}\n{right}"
 
 def extract_code(code: str) -> str:
