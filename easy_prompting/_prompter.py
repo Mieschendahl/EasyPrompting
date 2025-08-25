@@ -2,10 +2,10 @@ from dataclasses import dataclass
 import io
 from pathlib import Path
 from easy_prompting._option import Option
-from easy_prompting._utils import load_text, pad, save_text, hash_str
+from easy_prompting._utils import load_text, If, pad, save_text, hash_str
 from easy_prompting._llm import LLM
 from easy_prompting._message import Message
-from typing import Optional, TextIO, Self
+from typing import Optional, TextIO
 
 class ChoiceError(Exception):
     pass
@@ -16,6 +16,7 @@ class SummaryError(Exception):
 class Prompter:
     def __init__(self, llm: LLM) -> None:
         self.set_llm(llm)\
+            .set_tag()\
             .set_messages()\
             .set_cache_path()\
             .set_logger()\
@@ -28,6 +29,13 @@ class Prompter:
     
     def get_llm(self) -> LLM:
         return self.llm
+
+    def set_tag(self, id: Optional[str] = None) -> 'Prompter':
+        self.id = id
+        return self
+    
+    def get_tag(self) -> Optional[str]:
+        return self.id
     
     def set_messages(self, messages: Optional[list[Message]] = None) -> 'Prompter':
         self.messages = [] if messages is None else messages
@@ -70,6 +78,7 @@ class Prompter:
     
     def get_copy(self) -> 'Prompter':
         return Prompter(self.get_llm())\
+            .set_tag()\
             .set_messages(self.get_messages().copy())\
             .set_cache_path(self.get_cache_path())\
             .set_logger(self.get_logger())\
@@ -80,7 +89,14 @@ class Prompter:
         message = Message(content, role)
         self.messages.append(message)
         if self.logger is not None:
-            print(f"{message.role.upper()} ({len(self.messages)}):\n{pad(message.content, " | ")}", end="\n\n", file=self.logger, flush=True)
+            text = (
+                f"{message.role.upper()} "
+                +
+                If(self.id is not None, f"({self.id}) ")
+                +
+                f"({len(self.messages)-1}):\n{pad(message.content, " | ")}"
+            )
+            print(text, end="\n\n", file=self.logger, flush=True)
         if self.start_size is not None and Message.length(self.messages) >= self.start_size:
             self.summarize()
             if Message.length(self.messages) >= self.start_size:
