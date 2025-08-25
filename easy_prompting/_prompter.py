@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import io
 from pathlib import Path
 from easy_prompting._option import Option
-from easy_prompting._utils import load_text, save_text, hash_str
+from easy_prompting._utils import load_text, pad, save_text, hash_str
 from easy_prompting._llm import LLM
 from easy_prompting._message import Message
 from typing import Optional, TextIO, Self
@@ -80,7 +80,7 @@ class Prompter:
         message = Message(content, role)
         self.messages.append(message)
         if self.logger is not None:
-            print(message, end="\n\n", file=self.logger)
+            print(f"{message.role.upper()} ({len(self.messages)}):\n{pad(message.content, " | ")}", end="\n\n", file=self.logger)
         if self.start_size is not None and Message.length(self.messages) >= self.start_size:
             self.summarize()
             if Message.length(self.messages) >= self.start_size:
@@ -121,7 +121,7 @@ class Prompter:
                 f"{Option.introduction} "
                 +
                 Option.create_scope(
-                    f"{Option.bullet_point}{Option.describe_options(*options)}"
+                    Option.describe_options(*options)
                 ),
                 role=role
             )

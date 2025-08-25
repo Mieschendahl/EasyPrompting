@@ -28,10 +28,10 @@ class Option:
         output = []
         for i, element in enumerate(sequence):
             if i % 2:
-                output.append(f"\n{Option.bullet_point}{element}")
+                output.append(f"{Option.bullet_point}{element}")
             else:
-                output.append(f"\n{Option.bullet_point}{Option.describe_key(element)}")
-        return "".join(output)
+                output.append(f"{Option.bullet_point}{Option.describe_key(element)}")
+        return "\n".join(output)
 
     @staticmethod
     def extract_sequence(sequence_str: str, dividers: list[str]) -> list[str]:
@@ -53,7 +53,7 @@ class Option:
 
     @staticmethod
     def describe_options(*options: "Option"):
-        return "\n\n".join(option.get_description() for option in options)
+        return "\n".join(f"{Option.bullet_point}{option}" for option in options)
 
     def __init__(self, name: str, condition: str, action: Optional[str] = None, effect: Optional[str] = None) -> None:
         self.name = name
@@ -61,17 +61,20 @@ class Option:
         self.action = action
         self.effect = effect
 
-    def get_description(self) -> str:
+    def __str__(self) -> str:
         return (
             f"{self.condition} "
             +
             Option.create_scope(
                 f"{Option.bullet_point}{Option.describe_key(self.name)}"
                 +
-                If(self.effect is not None, f"\n{Option.bullet_point}{self.action}")
+                If(self.action is not None, f"\n{Option.bullet_point}{self.action}")
                 +
                 f"\n{Option.bullet_point}{Option.describe_key(Option.stop)}"
                 +
                 If(self.effect is not None, f"\n{Option.bullet_point}{self.effect}")
             )
         )
+
+    def __repr__(self) -> str:
+        return f"Option(name={self.name!r}, condition={self.condition!r}, action={self.action!r}, effect={self.effect!r})"

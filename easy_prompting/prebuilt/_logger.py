@@ -11,20 +11,19 @@ class PrettyLogger(io.TextIOBase):
       excess lines are summarized.
     """
 
-    def __init__(self, target: TextIO):
-        self.set_target(target)\
+    def __init__(self, target: TextIO | io.TextIOBase, raw_target: Optional[TextIO | io.TextIOBase] = None):
+        self.set_target(target, raw_target)\
             .set_wrap()\
             .set_max_lines()
 
-    # --- Target ---
-    def set_target(self, target: TextIO | io.TextIOBase) -> "PrettyLogger":
+    def set_target(self, target: TextIO | io.TextIOBase, raw_target: Optional[TextIO | io.TextIOBase] = None) -> "PrettyLogger":
         self.target = target
+        self.raw_target = raw_target
         return self
 
-    def get_target(self) -> TextIO | io.TextIOBase:
-        return self.target
+    def get_target(self) -> tuple[TextIO | io.TextIOBase, Optional[TextIO | io.TextIOBase]]:
+        return (self.target, self.raw_target)
 
-    # --- Wrap ---
     def set_wrap(self, width: Optional[int] = None, wrap_char: Optional[str] = None) -> "PrettyLogger":
         self.width = width
         self.wrap_char = wrap_char
@@ -33,7 +32,6 @@ class PrettyLogger(io.TextIOBase):
     def get_wrap(self) -> Tuple[Optional[int], Optional[str]]:
         return (self.width, self.wrap_char)
 
-    # --- Max lines ---
     def set_max_lines(self, n: Optional[int] = None) -> "PrettyLogger":
         self.max_lines = n
         self.line_count = 0
@@ -42,14 +40,20 @@ class PrettyLogger(io.TextIOBase):
     def get_max_lines(self) -> Optional[int]:
         return self.max_lines
 
-    # --- Core logic ---
-    def write(self, s: str) -> int:
+    def get_copy(self) -> "PrettyLogger":
+        return PrettyLogger(*self.get_target())\
+            .set_wrap(*self.get_wrap())\
+            .set_max_lines(self.get_max_lines())
+
+    def write(self, text: str) -> int:
         """
         Write string with wrapping and line limiting.
         Returns number of characters processed.
         """
-        # Step 1: split into raw lines
-        raw_lines = s.split("\n")
+        if self.raw_target is not None:
+            self.raw_target.write(text)
+
+        raw_lines = text.split("\n")
 
         # Step 2: wrap each line
         output: list[str] = []
@@ -76,8 +80,10 @@ class PrettyLogger(io.TextIOBase):
 
         # Track how many lines went out
         self.line_count += len(output)
-        return len(s)
+        return len(text)
 
     def flush(self) -> None:
         """Flush target."""
+        if self.raw_target is not None:
+            self.raw_target.flush()
         self.target.flush()
