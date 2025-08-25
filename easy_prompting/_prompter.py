@@ -80,7 +80,7 @@ class Prompter:
         message = Message(content, role)
         self.messages.append(message)
         if self.logger is not None:
-            print(f"{message.role.upper()} ({len(self.messages)}):\n{pad(message.content, " | ")}", end="\n\n", file=self.logger)
+            print(f"{message.role.upper()} ({len(self.messages)}):\n{pad(message.content, " | ")}", end="\n\n", file=self.logger, flush=True)
         if self.start_size is not None and Message.length(self.messages) >= self.start_size:
             self.summarize()
             if Message.length(self.messages) >= self.start_size:

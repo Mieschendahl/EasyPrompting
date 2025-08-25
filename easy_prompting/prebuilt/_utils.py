@@ -1,5 +1,7 @@
 import re
-from easy_prompting._utils import If, pad, wrap, scope
+
+def delimit(text: str, keyword: str = "", left: str = "```", right: str = "```") -> str:
+    return f"{left}{keyword}\n{text}\n{right}"
 
 def extract_code(code: str) -> str:
     match = re.search(r'```(?:[a-zA-Z]*\n)?(.*)```', code, re.DOTALL)

@@ -1,5 +1,5 @@
 from typing import Optional
-from easy_prompting._utils import If, pad
+from easy_prompting._utils import If, pad, wrap
 
 class Option:
     stop = "stop"
@@ -13,7 +13,7 @@ class Option:
     
     @staticmethod
     def create_key(name: str) -> str:
-        return Option.key_prefix + name + Option.key_suffix
+        return wrap(name, Option.key_prefix, Option.key_suffix)
     
     @staticmethod
     def describe_key(name: str) -> str:
