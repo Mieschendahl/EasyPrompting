@@ -102,8 +102,8 @@ class Prompter:
             if Message.length(self.messages) >= self.start_size:
                 raise SummaryError("Prompter was unable to summarize the past conversation to a sufficient level.")
         return self
-    
-    def add_completion(self, stop: Optional[str] = None) -> 'Prompter':
+
+    def interact(self) -> 'Prompter':
         if self.interaction_role is not None:
             content = input(f"{self.interaction_role.upper()} (↵: next, x: exit): ")
             print()
@@ -111,6 +111,10 @@ class Prompter:
                 exit(0)
             if content != "":
                 self.add_message(content, self.interaction_role)
+        return self
+                
+    def add_completion(self, stop: Optional[str] = None) -> 'Prompter':
+        self.interact()        
 
         if self.cache_path is None:
             completion = self.llm.get_completion(self.messages, stop)
@@ -120,9 +124,12 @@ class Prompter:
             if completion is None:
                 completion = self.llm.get_completion(self.messages, stop)
                 save_text(file_path, completion)
+
         if stop is not None:
             completion += stop
         self.add_message(completion, role="assistant")
+        
+        self.interact()
         return self
     
     def get_completion(self, stop: Optional[str] = None) -> str:
