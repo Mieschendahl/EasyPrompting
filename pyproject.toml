@@ -1,7 +1,7 @@
 [project]
 name = "easy_prompting"
 version = "1.0.0"
-description = "A Python library for making LLM prompting easy."
+description = "A python library for making LLM prompting easy."
 authors = [{name = "Leonardo Mieschendahl", email = "miesschendahl.leonardo@gmail.com"}]
 dependencies = ['openai >=1.83.0, <2.0.0']
 

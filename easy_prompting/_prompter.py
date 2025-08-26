@@ -114,7 +114,9 @@ class Prompter:
         return self
                 
     def add_completion(self, stop: Optional[str] = None) -> 'Prompter':
-        self.interact()        
+        self.interact()
+        
+        stop = None if stop is None else Message.create_key(stop)
 
         if self.cache_path is None:
             completion = self.llm.get_completion(self.messages, stop)
@@ -136,26 +138,22 @@ class Prompter:
         self.add_completion(stop)
         completion = self.messages[-1].content
         if stop is not None:
-            completion = completion.split(stop, 1)[0]
+            completion = completion.split(Message.create_key(stop), 1)[0]
         return completion
-    
+
     def get_choice(self, *options: Option, role: str = "user") -> tuple[str, str]:
         self.add_message(
-                f"{Option.introduction} "
-                +
-                Option.create_scope(
-                    Option.describe_options(*options)
-                ),
+                Option.introduction + Option.describe_options(*options, scope=True),
                 role=role
             )
-        completion = self.get_completion(Option.create_key(Option.stop))
+        completion = self.get_completion(Option.stop)
         for option in options:
-            split = completion.split(Option.create_key(option.name), 1)
+            split = completion.split(Message.create_key(option.name), 1)
             if len(split) == 2:
                 return option.name, split[1].strip()
         raise ChoiceError(f"The LLM did not adhere to the selection format: \"{completion}\"")
 
-    def summarize(self) -> 'Prompter':        
+    def summarize(self) -> 'Prompter':
         akk = 0
         included = []
         excluded = []
@@ -169,12 +167,18 @@ class Prompter:
 
         conversation = "\n\n".join(f"{message.role}:\n{message.content}" for message in self.messages)
         summary = self.get_copy()\
+            .set_tag(f"{self.get_tag()}:SUMMARIZER")\
             .set_messages()\
             .set_summary()\
             .add_message(
-                f"Please summarize the following conversation."
-                f"\nOnly keep the most important information about the conversation in the summary."
-                f"\nOnly answer with the summary and nothing else."
+                f"Your task is"
+                +
+                Message.create_list(
+                    f"Please summarize the following conversation.",
+                    f"Only keep the most important information about the conversation in the summary.",
+                    f"Only answer with the summary and nothing else.",
+                    scope = True
+                )
             )\
             .add_message(
                 f"Here is the conversation:\n{conversation}",

@@ -27,7 +27,7 @@ def save_text(file_path: Path, text: Optional[str]) -> None:
 def hash_str(text: str, length: int = 16) -> str:
     return hashlib.blake2b(text.encode(), digest_size=length).hexdigest()
 
-def If(condition: bool, then_text: str, else_text: str = "") -> str:
+def If[T](condition: bool, then_text: T, else_text: T = "") -> T:
     if condition:
         return then_text
     return else_text
