@@ -18,7 +18,7 @@ class Message:
         return f"{Message.left_bracket}{pad(text, Message.padding)}{Message.right_bracket}"
     
     @staticmethod
-    def create_list(*list: Optional[str], scope: bool = False) -> str:
+    def create_list(*list: Optional[str], scope: bool = True) -> str:
         output = "\n".join(f"{Message.bullet_point}{element}" for element in list if element is not None)
         if scope:
             output = Message.create_scope(output)
@@ -29,7 +29,7 @@ class Message:
         return f"Write \"{Message.create_key(name)}\""
 
     @staticmethod
-    def describe_sequence(*sequence: Optional[str], scope: bool = False) -> str:
+    def describe_sequence(*sequence: Optional[str], scope: bool = True) -> str:
         output = []
         for i, element in enumerate(sequence):
             if element is None:

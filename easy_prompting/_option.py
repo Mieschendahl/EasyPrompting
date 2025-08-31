@@ -6,7 +6,7 @@ class Option:
     introduction = "Choose exactly one of the following options and terminate it correctly"
 
     @staticmethod
-    def describe_options(*options: "Option", scope: bool = False):
+    def describe_options(*options: "Option", scope: bool = True):
         return Message.create_list(*map(str, options), scope=scope)
 
     def __init__(self, name: str, condition: str, action: Optional[str] = None, effect: Optional[str] = None) -> None:
