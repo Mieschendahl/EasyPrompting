@@ -4,13 +4,15 @@ from easy_prompting._llm import LLM
 from easy_prompting._message import Message
 from typing import List, Optional, Any
 
-api_key: Optional[str] = os.getenv("OPENAI_API_KEY", None)
-client = OpenAI(api_key=api_key)
-
 class GPT(LLM):
-    def __init__(self, **config: Any) -> None:
-        self.set_config(**config)
-        
+    client: Optional[OpenAI] = None
+    
+    def __init__(self, model: str = "gpt-4o-mini", temperature: int = 0, **config: Any) -> None:
+        if GPT.client is None:
+            api_key = os.getenv("OPENAI_API_KEY", None)
+            GPT.client = OpenAI(api_key=api_key)
+        self.set_config(model=model, temperature=temperature, **config)
+
     def set_config(self, **config: Any) -> 'GPT':
         self.config = config
         return self
@@ -23,11 +25,8 @@ class GPT(LLM):
 
     def get_completion(self, messages: List[Message], stop: Optional[str] = None) -> str:
         openai_messages = [message.to_dict() for message in messages]
-        return client.chat.completions.create(
+        return GPT.client.chat.completions.create(  # type:ignore
                 messages=openai_messages,  # type:ignore
                 stop=stop,
                 **self.config
             ).choices[0].message.content
-
-gpt_4o = GPT(model="gpt-4o", temperature=0)
-gpt_4o_mini = GPT(model="gpt-4o-mini", temperature=0)
