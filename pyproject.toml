@@ -1,7 +1,7 @@
 [project]
 name = "easy_prompting"
 version = "1.0.0"
-description = "A python library for making LLM prompting easy."
+description = "A Python library for making LLM prompting easy."
 authors = [{name = "Leonardo Mieschendahl", email = "miesschendahl.leonardo@gmail.com"}]
 dependencies = ['openai >=1.83.0, <2.0.0']
 
@@ -10,4 +10,4 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-exclude = ["assets", "output"]
+exclude = ["dev.*"]

@@ -32,11 +32,5 @@ def If[T](condition: bool, then_text: T, else_text: T = "") -> T:
         return then_text
     return else_text
 
-def pad(text: str, padding: str = "  ") -> str:
+def pad_text(text: str, padding: str = "  ") -> str:
     return "\n".join(f"{padding}{line}" for line in text.split("\n"))
-
-def wrap(key: str, left: str = "[[", right: str = "]]") -> str:
-    return left + key + right
-
-def scope(text: str, padding: str = "  ", left: str = "{\n", right: str = "\n}") -> str:
-    return left + pad(text, padding) + right

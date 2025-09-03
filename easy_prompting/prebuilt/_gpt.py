@@ -5,12 +5,17 @@ from easy_prompting._message import Message
 from typing import List, Optional, Any
 
 class GPT(LLM):
-    client: Optional[OpenAI] = None
-    
-    def __init__(self, model: str = "gpt-4o-mini", temperature: int = 0, **config: Any) -> None:
+    client: Optional[Any] = None
+
+    @staticmethod
+    def load_client() -> Any:
         if GPT.client is None:
             api_key = os.getenv("OPENAI_API_KEY", None)
+            assert api_key is not None, "Missing OPENAI API KEY definition in environment"
             GPT.client = OpenAI(api_key=api_key)
+
+    def __init__(self, model: str = "gpt-4o-mini", temperature: int = 0, **config: Any) -> None:
+        GPT.load_client()
         self.set_config(model=model, temperature=temperature, **config)
 
     def set_config(self, **config: Any) -> 'GPT':
