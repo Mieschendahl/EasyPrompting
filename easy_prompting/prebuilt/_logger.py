@@ -1,5 +1,5 @@
 import io
-from typing import Optional, TextIO, Tuple
+from typing import Optional, TextIO
 
 class FormatLogger(io.TextIOBase):
     def __init__(self, target: TextIO | io.TextIOBase):
@@ -30,7 +30,7 @@ class FormatLogger(io.TextIOBase):
         if self.max_lines is not None and len(output) > self.max_lines:
             hidden = len(output) - self.max_lines
             output = output[:self.max_lines]
-            output.append(f"{hidden} LINE(S) ARE HIDDEN")
+            output.append(f"{hidden} LINE(S) WERE HIDDEN")
 
         self.target.write("\n".join(output))
         return len(text)

@@ -1,3 +1,4 @@
+import re
 import shutil
 import hashlib
 from pathlib import Path
@@ -32,5 +33,23 @@ def If[T](condition: bool, then_text: T, else_text: T = "") -> T:
         return then_text
     return else_text
 
-def pad_text(text: str, padding: str = "  ") -> str:
-    return "\n".join(f"{padding}{line}" for line in text.split("\n"))
+def pad_text(text: str) -> str:
+    return "\n".join(f"  {line}" for line in text.split("\n"))
+
+def wrap_text(text: str) -> str:
+    return f"[[{text}]]"
+
+def scope_text(text: str) -> str:
+    return " {\n" + pad_text(text) + "\n}"
+
+def list_text(*texts: Optional[str], scope: bool = False) -> str:
+    text_out = "\n".join(f"- {text}" for text in texts if text is not None)
+    if scope:
+        return scope_text(text_out)
+    return text_out
+
+def extract_code(code: str) -> str:
+    match = re.search(r'```(?:[a-zA-Z]*\n)?(.*)```', code, re.DOTALL)
+    if not match:
+        return code.strip()  # No code block found
+    return match.group(1).strip()

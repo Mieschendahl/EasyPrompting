@@ -1,8 +1,10 @@
 import os
 from openai import OpenAI
+from typing import List, Optional, Any
+
 from easy_prompting._llm import LLM
 from easy_prompting._message import Message
-from typing import List, Optional, Any
+
 
 class GPT(LLM):
     client: Optional[Any] = None

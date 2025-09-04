@@ -1,9 +1,11 @@
 import io
 from pathlib import Path
-from easy_prompting._utils import load_text, If, save_text, hash_str, pad_text
+from typing import Any, Optional, TextIO
+
+from easy_prompting._instruction import Instruction
+from easy_prompting._utils import load_text, If, save_text, hash_str, pad_text, wrap_text
 from easy_prompting._llm import LLM
-from easy_prompting._message import Instruction, Message
-from typing import Optional, TextIO
+from easy_prompting._message import Message
 
 class PromptingError(Exception):
     pass
@@ -67,7 +69,7 @@ class Prompter:
             .set_loggers(*self.get_loggers())\
             .set_interaction(self.get_interaction())
     
-    def log(self, text) -> "Prompter":
+    def add_log(self, text) -> "Prompter":
         for logger in self.loggers:
             print(text, end="\n\n", file=logger, flush=True)
         return self
@@ -76,7 +78,7 @@ class Prompter:
         message = Message(content, role)
         self.messages.append(message)
 
-        self.log(
+        self.add_log(
             f"{message.role.upper()} "
             +
             If(self.id is not None, f"({self.id}) ")
@@ -111,11 +113,12 @@ class Prompter:
         if stop is not None:
             completion += stop
         self.add_message(completion, role="assistant")
-        
+
         # self.interact()
         return self
     
-    def get_completion(self, instruction: Instruction) -> list | str:
-        self.add_completion(Instruction.uniquify(Instruction.stop))
+    def get_data(self, instruction: Instruction, role: str = "user") -> Any:
+        self.add_message(instruction.describe(), role=role)
+        self.add_completion(wrap_text(Instruction.stop))
         completion = self.messages[-1].content
         return instruction.extract(completion)

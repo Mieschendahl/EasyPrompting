@@ -1,5 +1,6 @@
 import argparse
 import sys
+
 from easy_prompting import Prompter
 from easy_prompting.prebuilt import GPT, FormatLogger
 
