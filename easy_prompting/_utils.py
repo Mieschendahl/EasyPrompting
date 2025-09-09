@@ -33,8 +33,8 @@ def If[T](condition: bool, then_text: T, else_text: T = "") -> T:
         return then_text
     return else_text
 
-def pad_text(text: str) -> str:
-    return "\n".join(f"  {line}" for line in text.split("\n"))
+def pad_text(text: str, padding: str = "  ") -> str:
+    return "\n".join(f"{padding}{line}" for line in text.split("\n"))
 
 def wrap_text(text: str) -> str:
     return f"[[{text}]]"
@@ -42,9 +42,21 @@ def wrap_text(text: str) -> str:
 def scope_text(text: str) -> str:
     return " {\n" + pad_text(text) + "\n}"
 
-def list_text(*texts: Optional[str], scope: bool = False) -> str:
+def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
     text_out = "\n".join(f"- {text}" for text in texts if text is not None)
-    if scope:
+    if add_scope:
+        return scope_text(text_out)
+    return text_out
+
+def enumerate_text(*texts: Optional[str], add_scope: bool = False) -> str:
+    i = 1
+    text_ls = []
+    for text in texts:
+        if text is not None:
+            text_ls.append(f"{i}. {text}")
+        i += 1
+    text_out = "\n".join(text_ls)
+    if add_scope:
         return scope_text(text_out)
     return text_out
 

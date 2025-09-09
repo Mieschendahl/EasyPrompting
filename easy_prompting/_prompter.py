@@ -2,7 +2,7 @@ import io
 from pathlib import Path
 from typing import Any, Optional, TextIO
 
-from easy_prompting._instruction import Instruction
+from easy_prompting._instruction import IList, IItem
 from easy_prompting._utils import load_text, If, save_text, hash_str, pad_text, wrap_text
 from easy_prompting._llm import LLM
 from easy_prompting._message import Message
@@ -83,7 +83,7 @@ class Prompter:
             +
             If(self.id is not None, f"({self.id}) ")
             +
-            f"({len(self.messages)-1}):\n{pad_text(message.content)}"
+            f"({len(self.messages)-1}):\n{pad_text(message.content, "| ")}"
         )
 
         return self
@@ -117,8 +117,10 @@ class Prompter:
         # self.interact()
         return self
     
-    def get_data(self, instruction: Instruction, role: str = "user") -> Any:
-        self.add_message(instruction.describe(), role=role)
-        self.add_completion(wrap_text(Instruction.stop))
+    def get_data(self, ilist: IList, role: str = "user") -> Any:
+        items = ilist.items + [IItem(IList.stop)]
+        ilist = IList(ilist.context, *items)
+        self.add_message(ilist.describe(), role=role)
+        self.add_completion(wrap_text(IList.stop))
         completion = self.messages[-1].content
-        return instruction.extract(completion)
+        return ilist.extract(completion)[:-1]
