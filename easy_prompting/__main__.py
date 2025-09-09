@@ -2,11 +2,11 @@ import argparse
 import sys
 
 from easy_prompting import Prompter
-from easy_prompting.prebuilt import GPT, FormatLogger
+from easy_prompting.prebuilt import GPT, PrintLogger
 
 def run_from_commandline(model_name: str, temperature: int, interactive: bool, cache_path: str):
     prompter = Prompter(GPT(model=model_name, temperature=temperature))\
-        .set_loggers(FormatLogger(sys.stdout))\
+        .set_loggers(PrintLogger(sys.stdout))\
         .set_cache_path(cache_path)\
         .set_interaction("user" if interactive else None)\
         .add_message(

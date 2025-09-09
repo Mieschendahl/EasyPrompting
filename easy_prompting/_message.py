@@ -1,7 +1,10 @@
+from typing import Literal
 from easy_prompting._utils import pad_text
 
+Role = Literal["user", "assistant", "developer"]
+
 class Message:
-    def __init__(self, content: str, role: str = "user") -> None:
+    def __init__(self, content: str, role: Role = "user") -> None:
         assert role in ["developer", "user", "assistant"], "Invalid role was given"
         self.content = content
         self.role = role

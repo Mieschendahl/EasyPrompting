@@ -5,7 +5,7 @@ from typing import Any, Optional, TextIO
 from easy_prompting._instruction import IList, IItem
 from easy_prompting._utils import load_text, If, save_text, hash_str, pad_text, wrap_text
 from easy_prompting._llm import LLM
-from easy_prompting._message import Message
+from easy_prompting._message import Message, Role
 
 class PromptingError(Exception):
     pass
@@ -54,11 +54,11 @@ class Prompter:
     def get_loggers(self) -> tuple[Optional[TextIO | io.TextIOBase], ...]:
         return self.loggers
 
-    def set_interaction(self, interaction_role: Optional[str] = None) -> "Prompter":
-        self.interaction_role = interaction_role
+    def set_interaction(self, interaction_role: Optional[Role] = None) -> "Prompter":
+        self.interaction_role: Optional[Role] = interaction_role
         return self
     
-    def get_interaction(self) -> Optional[str]:
+    def get_interaction(self) -> Optional[Role]:
         return self.interaction_role
     
     def get_copy(self) -> "Prompter":
@@ -74,7 +74,7 @@ class Prompter:
             print(text, end="\n\n", file=logger, flush=True)
         return self
 
-    def add_message(self, content: str, role: str = "user") -> "Prompter":
+    def add_message(self, content: str, role: Role = "user") -> "Prompter":
         message = Message(content, role)
         self.messages.append(message)
 
@@ -117,7 +117,7 @@ class Prompter:
         # self.interact()
         return self
     
-    def get_data(self, ilist: IList, role: str = "user") -> Any:
+    def get_data(self, ilist: IList, role: Role = "user") -> Any:
         items = ilist.items + [IItem(IList.stop)]
         ilist = IList(ilist.context, *items)
         self.add_message(ilist.describe(), role=role)

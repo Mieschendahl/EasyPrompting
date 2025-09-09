@@ -1,27 +1,27 @@
 import io
 from typing import Optional, TextIO
 
-class FormatLogger(io.TextIOBase):
+class PrintLogger(io.TextIOBase):
     def __init__(self, target: TextIO | io.TextIOBase):
         self.set_target(target)\
             .set_max_lines()
 
-    def set_target(self, target: TextIO | io.TextIOBase) -> "FormatLogger":
+    def set_target(self, target: TextIO | io.TextIOBase) -> "PrintLogger":
         self.target = target
         return self
 
     def get_target(self) -> TextIO | io.TextIOBase:
         return self.target
 
-    def set_max_lines(self, n: Optional[int] = None) -> "FormatLogger":
+    def set_max_lines(self, n: Optional[int] = None) -> "PrintLogger":
         self.max_lines = n
         return self
 
     def get_max_lines(self) -> Optional[int]:
         return self.max_lines
 
-    def get_copy(self) -> "FormatLogger":
-        return FormatLogger(self.get_target())\
+    def get_copy(self) -> "PrintLogger":
+        return PrintLogger(self.get_target())\
             .set_max_lines(self.get_max_lines())
 
     def write(self, text: str) -> int:

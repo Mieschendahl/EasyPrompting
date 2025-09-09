@@ -1,8 +1,7 @@
 import os
-from openai import OpenAI
 from typing import List, Optional, Any
 
-from easy_prompting._llm import LLM
+from easy_prompting._llm import LLM, LLMError
 from easy_prompting._message import Message
 
 
@@ -12,8 +11,15 @@ class GPT(LLM):
     @staticmethod
     def load_client() -> Any:
         if GPT.client is None:
+            try:
+                from openai import OpenAI
+            except ImportError as e:
+                raise LLMError("The \"openai\" library has to be manually installed to use the prebuilt GPT implementation") from e
+
             api_key = os.getenv("OPENAI_API_KEY", None)
-            assert api_key is not None, "Missing OPENAI API KEY definition in environment"
+            if api_key is None:
+                raise LLMError("The OPENAI_API_KEY environemnt variable has to be set to a valid OpenAI API Key to use the prebuilt GPT implementation")
+            
             GPT.client = OpenAI(api_key=api_key)
 
     def __init__(self, model: str = "gpt-4o-mini", temperature: int = 0, **config: Any) -> None:
