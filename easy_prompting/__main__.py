@@ -41,6 +41,9 @@ if __name__ == "__main__":
         help="Cache LLM responses in PATH (default: ./completions)"
     )
     args = parser.parse_args()
+    
+    # run command
+    
     run(
         model_name=args.model_name,
         temperature=args.temperature,

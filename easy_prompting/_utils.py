@@ -1,4 +1,3 @@
-import re
 import shutil
 import hashlib
 from pathlib import Path
@@ -42,12 +41,6 @@ def wrap_text(text: str) -> str:
 def scope_text(text: str) -> str:
     return " {\n" + pad_text(text) + "\n}"
 
-def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
-    text_out = "\n".join(f"- {text}" for text in texts if text is not None)
-    if add_scope:
-        return scope_text(text_out)
-    return text_out
-
 def enumerate_text(*texts: Optional[str], add_scope: bool = False) -> str:
     i = 1
     text_ls = []
@@ -59,9 +52,3 @@ def enumerate_text(*texts: Optional[str], add_scope: bool = False) -> str:
     if add_scope:
         return scope_text(text_out)
     return text_out
-
-def extract_code(code: str) -> str:
-    match = re.search(r'```(?:[a-zA-Z]*\n)?(.*)```', code, re.DOTALL)
-    if not match:
-        return code.strip()  # No code block found
-    return match.group(1).strip()

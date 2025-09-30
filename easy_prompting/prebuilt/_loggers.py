@@ -37,7 +37,6 @@ class LogPrint(Logger):
             num_hidden_lines = len(lines) - self.max_lines
             lines = lines[:self.max_lines]
             lines.append(f"{num_hidden_lines} LINE(S) WERE HIDDEN")
-    
         print("\n".join(lines), end="", flush=True)
 
     @override
