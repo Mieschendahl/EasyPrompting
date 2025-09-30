@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any, Optional, override
 
 from easy_prompting._utils import enumerate_text, wrap_text
@@ -15,10 +16,10 @@ class Instruction(ABC):
     def extract(self, data: str) -> Any:
         pass
 
+@dataclass
 class IItem:
-    def __init__(self, key: str, value: Optional[Instruction] = None):
-        self.key = key
-        self.value = value
+    key: str
+    value: Optional[Instruction] = None
 
 class IList(Instruction):
     stop = "stop"
