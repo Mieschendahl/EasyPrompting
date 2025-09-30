@@ -1,23 +1,18 @@
 from typing import Literal
-from easy_prompting._utils import pad_text
 
 Role = Literal["user", "assistant", "developer"]
 
 class Message:
     def __init__(self, content: str, role: Role = "user") -> None:
-        assert role in ["developer", "user", "assistant"], "Invalid role was given"
-        self.content = content
-        self.role = role
-    
-    def __str__(self) -> str:
-        return f"{self.role.upper()}:\n{pad_text(self.content)}"
-    
+        self._content = content
+        self._role = role
+
     def __repr__(self) -> str:
-        return f"Message(role={self.role!r}, content={self.content!r})"
+        return f"Message(role={self._role!r}, content={self._content!r})"
     
     def to_dict(self) -> dict:
-        return dict(content=self.content, role=self.role)
+        return dict(content=self._content, role=self._role)
 
     @staticmethod
     def length(messages: list['Message']) -> int:
-        return sum(len(message.content) for message in messages)
+        return sum(len(message._content) for message in messages)

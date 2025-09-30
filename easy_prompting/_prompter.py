@@ -1,126 +1,117 @@
 import io
 from pathlib import Path
-from typing import Any, Optional, TextIO
+from typing import Any, Optional, Self
 
 from easy_prompting._instruction import IList, IItem
 from easy_prompting._utils import load_text, If, save_text, hash_str, pad_text, wrap_text
+from easy_prompting._message import Role, Message
 from easy_prompting._llm import LLM
-from easy_prompting._message import Message, Role
-
-class PromptingError(Exception):
-    pass
+from easy_prompting._logger import Logger
 
 class Prompter:
     def __init__(self, llm: LLM) -> None:
         self.set_llm(llm)\
             .set_tag()\
-            .set_messages()\
+            .set_messages([])\
             .set_cache_path()\
-            .set_loggers()\
-            .set_interaction()
+            .set_logger()\
+            .set_interaction(False)
 
-    def set_llm(self, llm: LLM) -> "Prompter":
-        self.llm = llm
+    def set_llm(self, llm: LLM) -> Self:
+        self._llm = llm
         return self
     
     def get_llm(self) -> LLM:
-        return self.llm
+        return self._llm
 
-    def set_tag(self, id: Optional[str] = None) -> "Prompter":
-        self.id = id
+    def set_tag(self, tag: Optional[str] = None) -> Self:
+        self._tag = tag
         return self
     
     def get_tag(self) -> Optional[str]:
-        return self.id
+        return self._tag
     
-    def set_messages(self, messages: Optional[list[Message]] = None) -> "Prompter":
-        self.messages = [] if messages is None else messages
+    def set_messages(self, messages: list[Message]) -> Self:
+        self._messages = messages
         return self
     
     def get_messages(self) -> list[Message]:
-        return self.messages
+        return self._messages
     
-    def set_cache_path(self, cache_path: Optional[str | Path] = None) -> "Prompter":
-        self.cache_path = None if cache_path is None else Path(cache_path)
+    def set_cache_path(self, cache_path: Optional[str | Path] = None) -> Self:
+        self._cache_path = None if cache_path is None else Path(cache_path)
         return self
         
     def get_cache_path(self) -> Optional[Path]:
-        return self.cache_path
+        return self._cache_path
 
-    def set_loggers(self, *logger: Optional[TextIO | io.TextIOBase]) -> "Prompter":
-        self.loggers = logger
+    def set_logger(self, logger: Optional[Logger] = None) -> Self:
+        self._logger = logger
         return self
     
-    def get_loggers(self) -> tuple[Optional[TextIO | io.TextIOBase], ...]:
-        return self.loggers
+    def get_logger(self) -> Optional[Logger]:
+        return self._logger
 
-    def set_interaction(self, interaction_role: Optional[Role] = None) -> "Prompter":
-        self.interaction_role: Optional[Role] = interaction_role
+    def set_interaction(self, mode: bool, role: Role = "user") -> Self:
+        self._interaction_mode: bool = mode
+        self._interaction_role: Role = role
         return self
     
-    def get_interaction(self) -> Optional[Role]:
-        return self.interaction_role
+    def get_interaction(self) -> tuple[bool, Role]:
+        return self._interaction_mode, self._interaction_role
     
     def get_copy(self) -> "Prompter":
         return Prompter(self.get_llm())\
             .set_tag()\
             .set_messages(self.get_messages().copy())\
             .set_cache_path(self.get_cache_path())\
-            .set_loggers(*self.get_loggers())\
-            .set_interaction(self.get_interaction())
-    
-    def add_log(self, text) -> "Prompter":
-        for logger in self.loggers:
-            print(text, end="\n\n", file=logger, flush=True)
-        return self
+            .set_logger(self.get_logger())\
+            .set_interaction(*self.get_interaction())
 
-    def add_message(self, content: str, role: Role = "user") -> "Prompter":
+    def add_message(self, content: str, role: Role = "user") -> Self:
         message = Message(content, role)
-        self.messages.append(message)
-
-        self.add_log(
-            f"{message.role.upper()} "
-            +
-            If(self.id is not None, f"({self.id}) ")
-            +
-            f"({len(self.messages)-1}):\n{pad_text(message.content, "| ")}"
-        )
-
+        self._messages.append(message)
+        if self._logger is not None:
+            self._logger.log(
+                f"{message._role.upper()} "
+                +
+                If(self._tag is not None, f"({self._tag}) ")
+                +
+                f"({len(self._messages)-1}):\n{pad_text(message._content, "# ")}"
+                +
+                "\n\n"
+            )
         return self
 
-    def interact(self) -> "Prompter":
-        if self.interaction_role is not None:
-            content = input(f"{self.interaction_role.upper()} (↵: next, x: exit): ")
+    def interact(self) -> Self:
+        if self._interaction_mode:
+            content = input(f"{self._interaction_role.upper()} (↵: next, x: exit): ")
             print()
             if content == "x":
                 exit(0)
             if content != "":
-                self.add_message(content, self.interaction_role)
+                self.add_message(content, self._interaction_role)
         return self
                 
-    def add_completion(self, stop: Optional[str] = None) -> "Prompter":
+    def add_completion(self, stop: Optional[str] = None) -> Self:
         self.interact()
-
-        if self.cache_path is None:
-            completion = self.llm.get_completion(self.messages, stop)
+        if self._cache_path is None:
+            completion = self._llm.get_completion(self._messages, stop)
         else:
-            file_path = self.cache_path / hash_str("\n\n".join(repr(message) for message in self.messages))
+            file_path = self._cache_path / hash_str("\n\n".join(repr(message) for message in self._messages))
             completion = load_text(file_path)
             if completion is None:
-                completion = self.llm.get_completion(self.messages, stop)
+                completion = self._llm.get_completion(self._messages, stop)
                 save_text(file_path, completion)
-
         if stop is not None:
             completion += stop
         self.add_message(completion, role="assistant")
-
-        # self.interact()
         return self
     
     def get_data(self, ilist: IList, role: Role = "user") -> Any:
-        items = ilist.items + [IItem(IList.stop)]
-        ilist = IList(ilist.context, *items)
+        items = ilist._items + [IItem(IList.stop)]
+        ilist = IList(ilist._context, *items)
         self.add_message(ilist.describe(), role=role)
         self.add_completion(wrap_text(IList.stop))
-        completion = self.messages[-1].content
+        completion = self._messages[-1]._content
         return ilist.extract(completion)[:-1]

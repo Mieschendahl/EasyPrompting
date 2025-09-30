@@ -3,14 +3,14 @@ import shutil
 import hashlib
 from pathlib import Path
 from typing import Optional
-
-def create_dir(dir_path: Path, src_path: Optional[Path] = None, remove: bool = True) -> None:
-    if remove:
-        shutil.rmtree(dir_path, ignore_errors=True)
+        
+def create_dir(dst_path: Path, src_path: Optional[Path] = None, overwrite: bool = False) -> None:
+    if overwrite:
+        shutil.rmtree(dst_path, ignore_errors=True)
     if src_path is None:
-        dir_path.mkdir(parents=True, exist_ok=True)
+        dst_path.mkdir(parents=True, exist_ok=True)
     else:
-        shutil.copytree(src_path, dir_path, dirs_exist_ok=True) 
+        shutil.copytree(src_path, dst_path, dirs_exist_ok=True, symlinks=True)
 
 def load_text(file_path: Path) -> Optional[str]:
     if file_path.is_file():
@@ -22,13 +22,13 @@ def save_text(file_path: Path, text: Optional[str]) -> None:
         if file_path.is_file():
             file_path.unlink()
     else:
-        create_dir(file_path.parent, remove=False)
+        create_dir(file_path.parent)
         file_path.write_text(text)
 
 def hash_str(text: str, length: int = 16) -> str:
     return hashlib.blake2b(text.encode(), digest_size=length).hexdigest()
 
-def If[T](condition: bool, then_text: T, else_text: T = "") -> T:
+def If(condition: bool, then_text: str, else_text: str = "") -> str:
     if condition:
         return then_text
     return else_text

@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Any
+from typing import List, Optional
 
-class LLMError(Exception):
-    pass
+from easy_prompting._message import Message
 
 class LLM(ABC):
     @abstractmethod
-    def get_completion(self, messages: List[Any], stop: Optional[str] = None) -> str:
+    def get_completion(self, messages: List[Message], stop: Optional[str] = None) -> str:
         pass

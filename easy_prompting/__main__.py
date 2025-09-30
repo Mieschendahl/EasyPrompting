@@ -1,19 +1,17 @@
 import argparse
-import sys
 
 from easy_prompting import Prompter
-from easy_prompting.prebuilt import GPT, PrintLogger
+from easy_prompting.prebuilt import GPT, LogPrint
 
-def run_from_commandline(model_name: str, temperature: int, interactive: bool, cache_path: str):
+def run(model_name: str, temperature: int, interactive: bool, cache_path: str):
     prompter = Prompter(GPT(model=model_name, temperature=temperature))\
-        .set_loggers(PrintLogger(sys.stdout))\
+        .set_logger(LogPrint())\
         .set_cache_path(cache_path)\
-        .set_interaction("user" if interactive else None)\
+        .set_interaction(interactive)\
         .add_message(
             "You are a ChatBot and should talk with the user",
             role="developer"
         )
-
     while True:
         prompter.add_completion()
 
@@ -43,7 +41,7 @@ if __name__ == "__main__":
         help="Cache LLM responses in PATH (default: ./completions)"
     )
     args = parser.parse_args()
-    run_from_commandline(
+    run(
         model_name=args.model_name,
         temperature=args.temperature,
         interactive=True,
