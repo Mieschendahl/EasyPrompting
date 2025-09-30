@@ -4,20 +4,6 @@ from typing import Optional, Self, override
 from easy_prompting._prompter import Logger
 from easy_prompting._utils import create_dir
 
-class LogList(Logger):
-    def __init__(self, loggers: list[Logger]):
-        self._loggers = loggers
-
-    @override
-    def log(self, text: str) -> None:
-        for logger in self._loggers:
-            logger.log(text)
-
-    @override
-    def close(self) -> None:
-        for logger in self._loggers:
-            logger.close()
-
 class LogPrint(Logger):
     def __init__(self):
         self.set_max_lines()
@@ -37,7 +23,7 @@ class LogPrint(Logger):
             num_hidden_lines = len(lines) - self.max_lines
             lines = lines[:self.max_lines]
             lines.append(f"{num_hidden_lines} LINE(S) WERE HIDDEN")
-        print("\n".join(lines), end="", flush=True)
+        print("\n".join(lines), end="\n\n", flush=True)
 
     @override
     def close(self) -> None:
@@ -47,12 +33,26 @@ class LogFile(Logger):
     def __init__(self, file_path: str | Path):
         self._file_path = Path(file_path)
         create_dir(self._file_path.parent)
-        self._file = self._file_path.open("a", buffering=1, encoding="utf-8")
-    
+        self._file = self._file_path.open("w", encoding="utf-8")
+
     @override
     def log(self, text: str) -> None:
-        print(text, end="", file=self._file, flush=True)
+        print(text, end="\n\n", file=self._file, flush=True)
 
     @override
     def close(self) -> None:
         self._file.close()
+
+class LogList(Logger):
+    def __init__(self, *loggers: Logger):
+        self._loggers = loggers
+
+    @override
+    def log(self, text: str) -> None:
+        for logger in self._loggers:
+            logger.log(text)
+
+    @override
+    def close(self) -> None:
+        for logger in self._loggers:
+            logger.close()

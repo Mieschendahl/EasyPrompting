@@ -12,7 +12,7 @@ def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
 def extract_code(code: str) -> str:
     match = re.search(r'```(?:[a-zA-Z]*\n)?(.*)```', code, re.DOTALL)
     if not match:
-        return code.strip()  # No code block found
+        return code.strip()
     return match.group(1).strip()
 
 def delimit_code(text: str, keyword: str = "") -> str:

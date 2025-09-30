@@ -5,6 +5,7 @@ from easy_prompting.prebuilt import GPT, LogPrint
 
 def run(model_name: str, temperature: int, interactive: bool, cache_path: str):
     prompter = Prompter(GPT(model=model_name, temperature=temperature))\
+        .set_tag("example")\
         .set_logger(LogPrint())\
         .set_cache_path(cache_path)\
         .set_interaction(interactive)\

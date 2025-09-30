@@ -32,7 +32,7 @@ def If(condition: bool, then_text: str, else_text: str = "") -> str:
         return then_text
     return else_text
 
-def pad_text(text: str, padding: str = "  ") -> str:
+def pad_text(text: str, padding: str = " ") -> str:
     return "\n".join(f"{padding}{line}" for line in text.split("\n"))
 
 def wrap_text(text: str) -> str:

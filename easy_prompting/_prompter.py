@@ -72,19 +72,15 @@ class Prompter:
         self._messages.append(message)
         if self._logger is not None:
             self._logger.log(
-                f"{message._role.upper()} "
+                "Message("
                 +
-                If(self._tag is not None, f"({self._tag}) ")
-                +
-                f"({len(self._messages)-1}):\n{pad_text(message._content, "# ")}"
-                +
-                "\n\n"
+                f"tag={self._tag!r}, role={message._role!r}, id={len(self._messages)-1}):\n{pad_text(message._content, "| ")}"
             )
         return self
 
     def interact(self) -> Self:
         if self._interaction_mode:
-            content = input(f"{self._interaction_role.upper()} (↵: next, x: exit): ")
+            content = input(f"Injection(x: exit): ")
             print()
             if content == "x":
                 exit(0)
