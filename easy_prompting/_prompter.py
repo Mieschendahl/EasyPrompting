@@ -80,14 +80,16 @@ class Prompter:
 
     def interact(self) -> Self:
         if self._interaction_mode:
-            content = input(f"Injection(x: exit): ")
-            print()
-            if content == "x":
+            try:
+                content = input(f"Input: ")
+            except (KeyboardInterrupt, EOFError):
+                print("\nUser aborted")
                 exit(0)
+            print()
             if content != "":
                 self.add_message(content, self._interaction_role)
         return self
-                
+
     def add_completion(self, stop: Optional[str] = None) -> Self:
         self.interact()
         if self._cache_path is None:
