@@ -72,9 +72,8 @@ class Prompter:
         self._messages.append(message)
         if self._logger is not None:
             self._logger.log(
-                "Message("
-                +
-                f"tag={self._tag!r}, role={message._role!r}, id={len(self._messages)-1}):\n{pad_text(message._content, "| ")}"
+                f"Message(tag={self._tag!r}, role={message._role!r}, id={len(self._messages)-1}):"
+                f"\n{pad_text(message._content, "| ")}"
             )
         return self
 

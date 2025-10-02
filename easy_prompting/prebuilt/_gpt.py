@@ -20,6 +20,7 @@ class GPT(LLM):
             GPT._client = OpenAI(api_key=api_key)
 
     def __init__(self, model: str = "gpt-4o-mini", temperature: int = 0, **config: Any) -> None:
+        super().__init__()
         GPT.load_client()
         self.set_config(model=model, temperature=temperature, **config)
 

@@ -1,29 +1,36 @@
 from pathlib import Path
-from typing import Optional, Self, override
+from typing import Any, Callable, Optional, Self, override
 
 from easy_prompting._prompter import Logger
 from easy_prompting._utils import create_dir
 
 class LogPrint(Logger):
     def __init__(self):
-        self.set_max_lines()
-
-    def set_max_lines(self, max_lines: Optional[int] = None) -> Self:
-        self.max_lines = max_lines
-        return self
-
-    def get_max_lines(self) -> Optional[int]:
-        return self.max_lines
+        super().__init__()
 
     @override
-    def log(self, text: str) -> None:
-        lines = text.split("\n")
-        num_hidden_lines = 0
-        if self.max_lines is not None and len(lines) > self.max_lines:
-            num_hidden_lines = len(lines) - self.max_lines
-            lines = lines[:self.max_lines]
-            lines.append(f"{num_hidden_lines} LINE(S) WERE HIDDEN")
-        print("\n".join(lines), end="\n\n", flush=True)
+    def _log(self, text: str) -> None:
+        print(text, end="\n\n", flush=True)
+
+    @override
+    def close(self) -> None:
+        pass
+
+class LogFunc(Logger):
+    def __init__(self, func: Callable[[str], Any]):
+        super().__init__()
+        self.set_func(func)
+    
+    def set_func(self, func: Callable[[str], Any]) -> Self:
+        self._func = func
+        return self
+    
+    def get_func(self) -> Callable[[str], Any]:
+        return self._func
+    
+    @override
+    def _log(self, text: str) -> None:
+        self._func(text)
 
     @override
     def close(self) -> None:
@@ -31,12 +38,20 @@ class LogPrint(Logger):
 
 class LogFile(Logger):
     def __init__(self, file_path: str | Path):
+        super().__init__()
+        self.set_file_path(file_path)
+    
+    def set_file_path(self, file_path: str | Path) -> Self:
         self._file_path = Path(file_path)
         create_dir(self._file_path.parent)
         self._file = self._file_path.open("w", encoding="utf-8")
+        return self
+    
+    def get_file_path(self) -> Path:
+        return self._file_path
 
     @override
-    def log(self, text: str) -> None:
+    def _log(self, text: str) -> None:
         print(text, end="\n\n", file=self._file, flush=True)
 
     @override
@@ -45,10 +60,18 @@ class LogFile(Logger):
 
 class LogList(Logger):
     def __init__(self, *loggers: Logger):
-        self._loggers = loggers
+        super().__init__()
+        self.set_loggers(*loggers)
+    
+    def set_loggers(self, *loggers: Logger) -> Self:
+        self._loggers = list(loggers)
+        return self
+    
+    def get_loggers(self) -> list[Logger]:
+        return self._loggers
 
     @override
-    def log(self, text: str) -> None:
+    def _log(self, text: str) -> None:
         for logger in self._loggers:
             logger.log(text)
 
@@ -56,3 +79,53 @@ class LogList(Logger):
     def close(self) -> None:
         for logger in self._loggers:
             logger.close()
+
+class LogReadable(Logger):
+    def __init__(self, logger: Logger):
+        super().__init__()
+        self.set_logger(logger)\
+            .set_vertical_crop()\
+            .set_horizontal_crop()
+    
+    def set_logger(self, logger: Logger) -> Self:
+        self._logger = logger
+        return self
+
+    def get_logger(self) -> Logger:
+        return self._logger
+
+    def set_vertical_crop(self, limit: Optional[int] = None) -> Self:
+        self._vertical_limit = limit
+        return self
+
+    def get_vertical_crop(self) -> Optional[int]:
+        return self._vertical_limit
+    
+    def set_horizontal_crop(self, limit: Optional[int] = None) -> Self:
+        self._horizontal_limit = limit
+        return self
+
+    def get_horizontal_crop(self) -> Optional[int]:
+        return self._horizontal_limit
+
+    @override
+    def _log(self, text: str) -> None:
+        lines = text.split("\n")
+        if self._vertical_limit is not None:
+            cropped_lines = []
+            for line in lines:
+                if len(line) <= self._vertical_limit:
+                    cropped_lines.append(line)
+                    continue
+                # num_cropped_chars = len(line[self._vertical_limit:])
+                cropped_lines.append(line[:self._vertical_limit] + f"...")
+            lines = cropped_lines
+        if self._horizontal_limit is not None and len(lines) > self._horizontal_limit:
+            # num_cropped_lines = len(lines) - self._horizontal_limit
+            lines = lines[:self._horizontal_limit]
+            lines.append(f"...")
+        self._logger.log("\n".join(lines))
+
+    @override
+    def close(self) -> None:
+        self._logger.close()
