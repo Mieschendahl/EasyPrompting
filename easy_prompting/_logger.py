@@ -7,9 +7,8 @@ class Logger(ABC):
     def __init__(self):
         self.set_verbose()
     
-    def set_verbose(self, verbose: bool = True) -> Self:
+    def set_verbose(self, verbose: bool = True) -> None:
         self._verbose = verbose
-        return self
     
     def get_verbose(self) -> bool:
         return self._verbose

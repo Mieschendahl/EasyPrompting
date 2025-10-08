@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 
 from easy_prompting._message import Role
 from easy_prompting._prompter import Prompter
-from easy_prompting._utils import pad_text, scope_text
+from easy_prompting._utils import scope_text
 
 def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
     text_out = "\n".join(f"- {text}" for text in texts if text is not None)

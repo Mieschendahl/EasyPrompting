@@ -5,17 +5,17 @@ from easy_prompting import Prompter
 from easy_prompting.prebuilt import GPT, LogPrint, create_interceptor
 
 def run(model_name: str, temperature: int, cache_path: str):
-    prompter = Prompter(GPT(model=model_name, temperature=temperature))\
-        .set_tag("example")\
-        .set_logger(LogPrint())\
-        .set_cache_path(cache_path)\
-        .add_message(
-            "You are a ChatBot and should talk with the user",
-            role="developer"
-        )
-    interceptor = create_interceptor()
+    prompter = Prompter(GPT(model=model_name, temperature=temperature))
+    prompter.set_logger(LogPrint())
+    prompter.set_interceptor(create_interceptor())
+    prompter.set_cache_path(cache_path)
+    prompter.set_tag("example")
+    prompter.add_message(
+        "You are a ChatBot and should talk with the user",
+        role="developer"
+    )
     while True:
-        prompter.add_completion(interceptor=interceptor)
+        prompter.add_completion()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

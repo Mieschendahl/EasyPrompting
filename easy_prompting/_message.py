@@ -1,5 +1,6 @@
 from typing import Literal
 
+roles = "user", "assistant", "developer"
 Role = Literal["user", "assistant", "developer"]
 
 class Message:

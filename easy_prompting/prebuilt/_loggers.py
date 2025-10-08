@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import Any, Callable, Optional, Self, override
+from typing import Any, Callable, Optional, override
 
-from easy_prompting._message import Message
+from easy_prompting._message import Message, roles, Role
 from easy_prompting._logger import Logger
 from easy_prompting._utils import create_dir, pad_text
 
@@ -16,9 +16,8 @@ class LogPrint(Logger):
         super().__init__()
         self.set_padding()
     
-    def set_padding(self, padding: str = "  ") -> Self:
+    def set_padding(self, padding: str = "  ") -> None:
         self._padding = padding
-        return self
     
     def get_padding(self) -> str:
         return self._padding
@@ -31,22 +30,19 @@ class LogPrint(Logger):
     def close(self) -> None:
         pass
 
-class LogFunc(Logger):
+class LogFunc(LogPrint):
     def __init__(self, func: Callable[[str], Any]):
         super().__init__()
-        self.set_func(func)\
-            .set_padding()
+        self.set_func(func)
     
-    def set_padding(self, padding: str = "  ") -> Self:
+    def set_padding(self, padding: str = "  ") -> None:
         self._padding = padding
-        return self
     
     def get_padding(self) -> str:
         return self._padding
     
-    def set_func(self, func: Callable[[str], Any]) -> Self:
+    def set_func(self, func: Callable[[str], Any]) -> None:
         self._func = func
-        return self
     
     def get_func(self) -> Callable[[str], Any]:
         return self._func
@@ -55,28 +51,15 @@ class LogFunc(Logger):
     def _log(self, message: Message, idx: Optional[int] = None, tag: Optional[str] = None) -> None:
         self._func(message_to_str(message, idx, tag, self._padding))
 
-    @override
-    def close(self) -> None:
-        pass
-
-class LogFile(Logger):
+class LogFile(LogPrint):
     def __init__(self, file_path: str | Path):
         super().__init__()
-        self.set_file_path(file_path)\
-            .set_padding()
+        self.set_file_path(file_path)
     
-    def set_padding(self, padding: str = "  ") -> Self:
-        self._padding = padding
-        return self
-    
-    def get_padding(self) -> str:
-        return self._padding
-    
-    def set_file_path(self, file_path: str | Path) -> Self:
+    def set_file_path(self, file_path: str | Path) -> None:
         self._file_path = Path(file_path)
         create_dir(self._file_path.parent)
         self._file = self._file_path.open("w", encoding="utf-8")
-        return self
     
     def get_file_path(self) -> Path:
         return self._file_path
@@ -94,9 +77,8 @@ class LogList(Logger):
         super().__init__()
         self.set_loggers(*loggers)
     
-    def set_loggers(self, *loggers: Logger) -> Self:
+    def set_loggers(self, *loggers: Logger) -> None:
         self._loggers = list(loggers)
-        return self
     
     def get_loggers(self) -> list[Logger]:
         return self._loggers
@@ -116,35 +98,33 @@ class LogReadable(Logger):
         super().__init__()
         self._limits = {}
         self.set_logger(logger)
+        self.set_crop()
+        self._delayed_crops: dict[int, Optional[int]] = {}
     
-    def set_logger(self, logger: Logger) -> Self:
+    def set_logger(self, logger: Logger) -> None:
         self._logger = logger
-        return self
 
     def get_logger(self) -> Logger:
         return self._logger
 
-    def add_crop(self, limit: int, offset: int = 0) -> Self:
-        self._limits[offset] = min(self._limits[offset], limit) if offset in self._limits else limit 
-        return self
+    def set_crop(self, limit: Optional[int] = None, role: Optional[Role] = None) -> None:
+        if role is None:
+            self._limits = {role: limit for role in roles}
+        else:
+            self._limits[role] = limit
+
+    def get_crop(self) -> dict[str, Optional[int]]:
+        return self._limits
 
     @override
     def _log(self, message: Message, idx: Optional[int] = None, tag: Optional[str] = None) -> None:
-        # crop message content
-        if 0 in self._limits:
-            limit = self._limits[0]
+        limit = self._limits[message.get_role()]
+        if limit is not None:
             lines = message.get_content().split("\n")
             if len(lines) > limit:
                 lines, cropped = lines[:limit], lines[limit:]
-                lines.append(f"... ({len(cropped)} line(s) cropped)")
+                lines.append(f"...{len(cropped)} line(s) cropped")
             message = Message("\n".join(lines), message.get_role())
-        # update crop settings
-        limits = {}
-        for offset, limit in self._limits.items():
-            if offset > 0:
-                limits[offset-1] = limit
-        self._limits = limits
-        # pass cropped message to logger
         self._logger.log(message, idx, tag)
 
     @override
