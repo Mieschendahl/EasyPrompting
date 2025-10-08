@@ -1,8 +1,8 @@
 from pathlib import Path
-from typing import Any, Optional, Self
+from typing import Any, Callable, Optional, Self
 
 from easy_prompting._instruction import IList, IItem
-from easy_prompting._utils import load_text, If, save_text, hash_str, pad_text, wrap_text
+from easy_prompting._utils import load_text, save_text, hash_str, wrap_text
 from easy_prompting._message import Role, Message
 from easy_prompting._llm import LLM
 from easy_prompting._logger import Logger
@@ -13,8 +13,7 @@ class Prompter:
             .set_tag()\
             .set_messages([])\
             .set_cache_path()\
-            .set_logger()\
-            .set_interaction(False)
+            .set_logger()
 
     def set_llm(self, llm: LLM) -> Self:
         self._llm = llm
@@ -50,47 +49,24 @@ class Prompter:
     
     def get_logger(self) -> Optional[Logger]:
         return self._logger
-
-    def set_interaction(self, mode: bool, role: Role = "user") -> Self:
-        self._interaction_mode: bool = mode
-        self._interaction_role: Role = role
-        return self
-    
-    def get_interaction(self) -> tuple[bool, Role]:
-        return self._interaction_mode, self._interaction_role
     
     def get_copy(self) -> "Prompter":
         return Prompter(self.get_llm())\
             .set_tag()\
             .set_messages(self.get_messages().copy())\
             .set_cache_path(self.get_cache_path())\
-            .set_logger(self.get_logger())\
-            .set_interaction(*self.get_interaction())
+            .set_logger(self.get_logger())
 
     def add_message(self, content: str, role: Role = "user") -> Self:
         message = Message(content, role)
         self._messages.append(message)
         if self._logger is not None:
-            self._logger.log(
-                f"Message(tag={self._tag!r}, role={message._role!r}, id={len(self._messages)-1}):"
-                f"\n{pad_text(message._content, "| ")}"
-            )
+            self._logger.log(message, len(self._messages)-1, self._tag)
         return self
 
-    def interact(self) -> Self:
-        if self._interaction_mode:
-            try:
-                content = input(f"Input: ")
-            except (KeyboardInterrupt, EOFError):
-                print("\nUser aborted")
-                exit(0)
-            print()
-            if content != "":
-                self.add_message(content, self._interaction_role)
-        return self
-
-    def add_completion(self, stop: Optional[str] = None) -> Self:
-        self.interact()
+    def add_completion(self, stop: Optional[str] = None, interceptor: Optional[Callable[[Self], Any]] = None) -> Self:
+        if interceptor is not None:
+            interceptor(self)
         if self._cache_path is None:
             completion = self._llm.get_completion(self._messages, stop)
         else:
@@ -101,13 +77,13 @@ class Prompter:
                 save_text(file_path, completion)
         if stop is not None:
             completion += stop
-        self.add_message(completion, role="assistant")
+        self.add_message(completion, "assistant")
         return self
     
-    def get_data(self, ilist: IList, role: Role = "user") -> Any:
+    def get_data(self, ilist: IList, role: Role = "user", interceptor: Optional[Callable[[Self], Any]] = None) -> Any:
         items = ilist._items + [IItem(IList.stop)]
         ilist = IList(ilist._context, *items)
-        self.add_message(ilist.describe(), role=role)
-        self.add_completion(wrap_text(IList.stop))
-        completion = self._messages[-1]._content
+        self.add_message(ilist.describe(), role)
+        self.add_completion(wrap_text(IList.stop), interceptor)
+        completion = self._messages[-1].get_content()
         return ilist.extract(completion)[:-1]

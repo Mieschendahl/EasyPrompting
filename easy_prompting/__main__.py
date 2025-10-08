@@ -1,20 +1,21 @@
 import argparse
+from functools import partial
 
 from easy_prompting import Prompter
-from easy_prompting.prebuilt import GPT, LogPrint
+from easy_prompting.prebuilt import GPT, LogPrint, create_interceptor
 
-def run(model_name: str, temperature: int, interactive: bool, cache_path: str):
+def run(model_name: str, temperature: int, cache_path: str):
     prompter = Prompter(GPT(model=model_name, temperature=temperature))\
         .set_tag("example")\
         .set_logger(LogPrint())\
         .set_cache_path(cache_path)\
-        .set_interaction(interactive)\
         .add_message(
             "You are a ChatBot and should talk with the user",
             role="developer"
         )
+    interceptor = create_interceptor()
     while True:
-        prompter.add_completion()
+        prompter.add_completion(interceptor=interceptor)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -48,6 +49,5 @@ if __name__ == "__main__":
     run(
         model_name=args.model_name,
         temperature=args.temperature,
-        interactive=True,
         cache_path=args.cache_path
     )

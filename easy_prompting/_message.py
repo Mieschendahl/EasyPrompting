@@ -5,7 +5,13 @@ Role = Literal["user", "assistant", "developer"]
 class Message:
     def __init__(self, content: str, role: Role = "user") -> None:
         self._content = content
-        self._role = role
+        self._role: Role = role
+    
+    def get_content(self) -> str:
+        return self._content
+    
+    def get_role(self) -> Role:
+        return self._role
 
     def __repr__(self) -> str:
         return f"Message(role={self._role!r}, content={self._content!r})"
