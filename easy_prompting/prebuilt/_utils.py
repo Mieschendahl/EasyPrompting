@@ -1,5 +1,4 @@
 from functools import partial
-import re
 from typing import Any, Callable, Optional
 
 from easy_prompting._message import Role
@@ -13,10 +12,17 @@ def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
     return text_out
 
 def extract_code(code: str) -> str:
-    match = re.search(r'```(?:[a-zA-Z]*\n)?(.*)```', code, re.DOTALL)
-    if not match:
-        return code.strip()
-    return match.group(1).strip()
+    lines = code.split("\n")
+    new_lines = []
+    start = None
+    for i, line in enumerate(lines):
+        if line.startswith("```"):
+            if start is not None:
+                return "\n".join(lines[start+1:i]).strip()
+            start = i
+        else:
+            new_lines.append(lines)
+    return "\n".join(new_lines).strip()
 
 def delimit_code(text: str, keyword: str = "") -> str:
     return f"```{keyword}\n{text}\n```"
