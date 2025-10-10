@@ -21,8 +21,22 @@ class IData(Instruction):
             raise ExtractionError(f"Data extraction failed: extractor {self._extractor} raised an error for {data!r}") from e
 
 class ICode(IData):
-    def __init__(self, text: str):
+    def __init__(self, text: str, language: str = ""):
         super().__init__(text, extract_code)
+        self._language = language
+
+    @override
+    def describe(self) -> str:
+        return (
+            f"Do the following"
+            +
+            enumerate_text(
+                f"Write \"```{self._language}\"",
+                self._text,
+                f"Write \"```\"",
+                add_scope=True
+            )
+        )
 
 class IChoice(Instruction):
     def __init__(self, context: str, *options: IList):

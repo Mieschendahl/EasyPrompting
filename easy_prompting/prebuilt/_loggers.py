@@ -35,12 +35,6 @@ class LogFunc(LogPrint):
         super().__init__()
         self.set_func(func)
     
-    def set_padding(self, padding: str = "  ") -> None:
-        self._padding = padding
-    
-    def get_padding(self) -> str:
-        return self._padding
-    
     def set_func(self, func: Callable[[str], Any]) -> None:
         self._func = func
     
