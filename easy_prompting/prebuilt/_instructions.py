@@ -31,9 +31,9 @@ class ICode(IData):
             f"Do the following"
             +
             enumerate_text(
-                f"Write \"```{self._language}\"",
+                f"Write \"```{self._language}\\n\"",
                 self._text,
-                f"Write \"```\"",
+                f"Write \"\\n```\"",
                 add_scope=True
             )
         )

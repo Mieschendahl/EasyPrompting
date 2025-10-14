@@ -3,10 +3,10 @@ from typing import Any, Callable, Optional
 
 from easy_prompting._message import Role
 from easy_prompting._prompter import Prompter
-from easy_prompting._utils import scope_text
+from easy_prompting._utils import pad_text, scope_text
 
 def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
-    text_out = "\n".join(f"- {text}" for text in texts if text is not None)
+    text_out = "\n".join(f"- {pad_text(text, pad_first=False)}" for text in texts if text is not None)
     if add_scope:
         return scope_text(text_out)
     return text_out
@@ -21,7 +21,7 @@ def extract_code(code: str, language: str = "") -> str:
     if start is not None:
         for i, line in enumerate(lines[start:]):
             if line.startswith("```"):
-                return "\n".join(lines[start:i]).strip()
+                return "\n".join(lines[start:start+i]).strip()
     return "\n".join(line for line in lines if not line.startswith("```")).strip()
 
 def delimit_code(text: str, keyword: str = "") -> str:

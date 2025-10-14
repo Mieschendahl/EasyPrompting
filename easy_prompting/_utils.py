@@ -27,13 +27,10 @@ def save_text(file_path: Path, text: Optional[str]) -> None:
 def hash_str(text: str, length: int = 16) -> str:
     return hashlib.blake2b(text.encode(), digest_size=length).hexdigest()
 
-def If(condition: bool, then_text: str, else_text: str = "") -> str:
-    if condition:
-        return then_text
-    return else_text
-
-def pad_text(text: str, padding: str = "  ") -> str:
-    return "\n".join(f"{padding}{line}" for line in text.split("\n"))
+def pad_text(text: str, padding: str = "  ", pad_first: bool = True) -> str:
+    if pad_first:
+        return "\n".join(f"{padding}{line}" for line in text.split("\n"))
+    return f"\n{padding}".join(text.split("\n"))
 
 def wrap_text(text: str) -> str:
     return f"[[{text}]]"
@@ -46,7 +43,7 @@ def enumerate_text(*texts: Optional[str], add_scope: bool = False) -> str:
     text_ls = []
     for text in texts:
         if text is not None:
-            text_ls.append(f"{i}. {text}")
+            text_ls.append(f"{i}. {pad_text(text, pad_first=False)}")
         i += 1
     text_out = "\n".join(text_ls)
     if add_scope:

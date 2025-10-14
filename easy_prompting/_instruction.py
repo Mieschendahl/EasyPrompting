@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Optional, override
 
-from easy_prompting._utils import enumerate_text, wrap_text
+from easy_prompting._utils import enumerate_text, pad_text, scope_text, wrap_text
 
 class ExtractionError(Exception):
     pass
@@ -24,10 +24,11 @@ class IItem:
 class IList(Instruction):
     stop = "stop"
 
-    def __init__(self, context: str, *items: IItem):
+    def __init__(self, context: str, *items: IItem, effect: Optional[str] = None):
         assert len(items) > 0, "Need at least one item in a List"
         self._context = context
         self._items = list(items)
+        self._effect = effect
     
     @override
     def describe(self) -> str:
@@ -36,7 +37,12 @@ class IList(Instruction):
             items.append(f"Write \"{wrap_text(item.key)}\"")
             if item.value is not None:
                 items.append(item.value.describe())
-        return self._context + enumerate_text(*items, add_scope=True)
+        effect = ""
+        if self._effect is not None:
+            if len(items) > 0:
+                effect += "\n"
+            effect += f"-> {pad_text(self._effect, pad_first=False)}"
+        return self._context + scope_text(enumerate_text(*items) + effect)
 
     @override
     def extract(self, data: str) -> list[Any]:
