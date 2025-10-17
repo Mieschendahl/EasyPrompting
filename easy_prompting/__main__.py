@@ -1,13 +1,9 @@
-import argparse
-from functools import partial
+from easy_prompting.prebuilt import Prompter, GPT, LogPrint, PrintInteraction
 
-from easy_prompting import Prompter
-from easy_prompting.prebuilt import GPT, LogPrint, create_interceptor
-
-def run(model_name: str, temperature: int, cache_path: str):
+def main(model_name: str, temperature: int, cache_path: str):
     prompter = Prompter(GPT(model=model_name, temperature=temperature))
     prompter.set_logger(LogPrint())
-    prompter.set_interceptor(create_interceptor())
+    prompter.set_interaction(PrintInteraction())
     prompter.set_cache_path(cache_path)
     prompter.set_tag("example")
     prompter.add_message(
@@ -18,36 +14,4 @@ def run(model_name: str, temperature: int, cache_path: str):
         prompter.add_completion()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Interact with ChatGPT."
-    )
-    parser.add_argument(
-        "--model-name",
-        default="gpt-4o-mini",
-        metavar="NAME",
-        help=("OpenAI model to use (i.g. gpt-4o, gpt-4o-mini, gpt-4, gpt-4-turbo, gpt-3.5-turbo) (default: gpt-4o-mini).")
-    )
-    parser.add_argument(
-        "--temperature",
-        type=int,
-        default=0,
-        metavar="VALUE",
-        help=(
-            "The temperature that the model should use for completion generation (default: 0)"
-        )
-    )
-    parser.add_argument(
-        "--cache-path",
-        metavar="PATH",
-        default="./completions",
-        help="Cache LLM responses in PATH (default: ./completions)"
-    )
-    args = parser.parse_args()
-    
-    # run command
-    
-    run(
-        model_name=args.model_name,
-        temperature=args.temperature,
-        cache_path=args.cache_path
-    )
+    main(model_name="gpt-4o-mini", temperature=0, cache_path="completions")

@@ -1,10 +1,10 @@
 import os
 from typing import List, Optional, Any, override
 
-from easy_prompting._llm import LLMError, LLM
+from easy_prompting._lm import LMError, LM
 from easy_prompting._message import Message
 
-class GPT(LLM):
+class GPT(LM):
     _client: Optional[Any] = None
 
     @staticmethod
@@ -13,16 +13,17 @@ class GPT(LLM):
             try:
                 from openai import OpenAI
             except ImportError as e:
-                raise LLMError("The \"openai\" library has to be manually installed to use the prebuilt GPT implementation") from e
+                raise LMError("The \"openai\" library has to be manually installed to use the prebuilt GPT implementation") from e
             api_key = os.getenv("OPENAI_API_KEY", None)
             if api_key is None:
-                raise LLMError("The OPENAI_API_KEY environemnt variable has to be set to a valid OpenAI API Key to use the prebuilt GPT implementation")
+                raise LMError("The OPENAI_API_KEY environemnt variable has to be set to a valid OpenAI API Key to use the prebuilt GPT implementation")
             GPT._client = OpenAI(api_key=api_key)
 
-    def __init__(self, model: str = "gpt-4o-mini", temperature: int = 0, **config: Any) -> None:
+    def __init__(self, model_name: str = "gpt-4o-mini", temperature: int = 0, **config: Any) -> None:
         super().__init__()
         GPT.load_client()
-        self.set_config(model=model, temperature=temperature, **config)
+        self._model_name = model_name
+        self._temperature = temperature
 
     def set_config(self, **config: Any) -> 'GPT':
         self._config = config
@@ -37,5 +38,6 @@ class GPT(LLM):
         return GPT._client.chat.completions.create( # type:ignore
                 messages=openai_messages, # type:ignore
                 stop=stop,
-                **self._config
+                model=self._model_name,
+                temperature=self._temperature
             ).choices[0].message.content

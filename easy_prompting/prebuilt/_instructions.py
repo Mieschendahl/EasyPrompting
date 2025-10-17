@@ -21,6 +21,7 @@ class IData(Instruction):
             raise ExtractionError(f"Data extraction failed: extractor {self._extractor} raised an error for {data!r}") from e
 
 class ICode(IData):
+    @override
     def __init__(self, text: str, language: str = ""):
         super().__init__(text, extract_code)
         self._language = language

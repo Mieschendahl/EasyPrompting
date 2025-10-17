@@ -1,8 +1,4 @@
-from functools import partial
-from typing import Any, Callable, Optional
-
-from easy_prompting._message import Role
-from easy_prompting._prompter import Prompter
+from typing import Optional
 from easy_prompting._utils import pad_text, scope_text
 
 def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
@@ -26,18 +22,3 @@ def extract_code(code: str, language: str = "") -> str:
 
 def delimit_code(text: str, keyword: str = "") -> str:
     return f"```{keyword}\n{text}\n```"
-
-def create_interceptor(printer: Optional[Callable[[str], Any]] = None, role: Role = "user") -> Callable[[Prompter], Any]:
-    if printer is None:
-        printer = partial(print, end="", flush=True)
-    def interceptor(prompter: Prompter) -> None:
-        try:
-            printer(f"Input(role={role!r}, continue={"↵"!r}, exit={"Ctrl+C"!r}): ")
-            content = input()
-            printer("\n")
-            if content != "":
-                prompter.add_message(content, role)
-        except (KeyboardInterrupt, EOFError):
-            printer(" User aborted\n")
-            exit(0)
-    return interceptor
