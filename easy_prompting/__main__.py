@@ -76,21 +76,27 @@ if __name__ == "__main__":
         prog="python3 -m easy_prompting",
         description="Run one of the EasyPrompting demos."
     )
-    parser.add_argument("demo", help="Which demo to run: 'chat' or 'python'")
+    parser.add_argument(
+        "--demo",
+        metavar="NAME",
+        help="Which demo to run (default='chat bot', 'square root', 'halting problem')",
+        default="chat bot"
+    )
     args = parser.parse_args()
 
     match args.demo:
-        case "chat":
+        case "chat bot":
             chat_bot()
-        case "python":
+        case "square root":
             # Possible task
             python_agent(
                 f"I need a function that calculates the square root of a whole number, if that square root is a natural number."
                 f"\nIf it is not a natural number, the function can just return None."
             )
+        case "halting problem":
             # Impossible task
-            # python_agent(
-            #     f"I need a function that determines if the code of a python function would return in finite time when executed."
-            # )
-        case _:
-            print("Unknown demo")
+            python_agent(
+                f"I need a function that determines if the code of a python function would return in finite time when executed."
+            )
+        case name:
+            print("Unknown demo: {name}")

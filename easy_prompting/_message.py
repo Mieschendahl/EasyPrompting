@@ -4,7 +4,7 @@ roles = "user", "assistant", "developer"
 Role = Literal["user", "assistant", "developer"]
 
 class Message:
-    def __init__(self, content: str, role: Role = "user") -> None:
+    def __init__(self, content: str, role: Role = "user"):
         self._content = content
         self._role: Role = role
     
