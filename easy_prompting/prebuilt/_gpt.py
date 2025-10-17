@@ -5,7 +5,7 @@ from easy_prompting._lm import LMError, LM
 from easy_prompting._message import Message
 
 class GPT(LM):
-    _client: Optional[Any] = None
+    _client: Any = None
 
     @staticmethod
     def load_client() -> Any:
@@ -19,8 +19,7 @@ class GPT(LM):
                 raise LMError("The OPENAI_API_KEY environemnt variable has to be set to a valid OpenAI API Key to use the prebuilt GPT implementation")
             GPT._client = OpenAI(api_key=api_key)
 
-    def __init__(self, model_name: str = "gpt-4o-mini", temperature: int = 0, **config: Any) -> None:
-        super().__init__()
+    def __init__(self, model_name: str = "gpt-4o-mini", temperature: int = 0):
         GPT.load_client()
         self._model_name = model_name
         self._temperature = temperature
@@ -35,8 +34,8 @@ class GPT(LM):
     @override
     def get_completion(self, messages: List[Message], stop: Optional[str] = None) -> str:
         openai_messages = [message.to_dict() for message in messages]
-        return GPT._client.chat.completions.create( # type:ignore
-                messages=openai_messages, # type:ignore
+        return GPT._client.chat.completions.create(
+                messages=openai_messages,
                 stop=stop,
                 model=self._model_name,
                 temperature=self._temperature

@@ -9,7 +9,7 @@ from easy_prompting._lm import LM
 from easy_prompting._logger import Logger
 
 class Prompter:
-    def __init__(self, lm: LM) -> None:
+    def __init__(self, lm: LM):
         self.set_lm(lm)
         self.set_messages([])
         self.set_logger()

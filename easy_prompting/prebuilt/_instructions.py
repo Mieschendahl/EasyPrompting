@@ -5,7 +5,7 @@ from easy_prompting._utils import enumerate_text, wrap_text
 from easy_prompting.prebuilt._utils import extract_code, list_text
 
 class IData(Instruction):
-    def __init__(self, text: str, extractor: Callable[[str], Any] = lambda x: x.strip()):
+    def __init__(self, text: str, extractor: Callable[[str], Any]):
         self._text = text
         self._extractor = extractor
     
@@ -19,6 +19,11 @@ class IData(Instruction):
             return self._extractor(data)
         except Exception as e:
             raise ExtractionError(f"Data extraction failed: extractor {self._extractor} raised an error for {data!r}") from e
+
+class IText(IData):
+    @override
+    def __init__(self, text: str):
+        super().__init__(text, lambda x: x.strip())
 
 class ICode(IData):
     @override
