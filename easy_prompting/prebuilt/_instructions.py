@@ -4,7 +4,7 @@ from easy_prompting._instruction import ExtractionError, Instruction, IItem, ILi
 from easy_prompting._utils import enumerate_text, wrap_text
 from easy_prompting.prebuilt._utils import extract_code, list_text
 
-class IData(Instruction):
+class DataI(Instruction):
     def __init__(self, text: str, extractor: Callable[[str], Any]):
         self._text = text
         self._extractor = extractor
@@ -20,12 +20,12 @@ class IData(Instruction):
         except Exception as e:
             raise ExtractionError(f"Data extraction failed: extractor {self._extractor} raised an error for {data!r}") from e
 
-class IText(IData):
+class TextI(DataI):
     @override
     def __init__(self, text: str):
         super().__init__(text, lambda x: x.strip())
 
-class ICode(IData):
+class CodeI(DataI):
     @override
     def __init__(self, text: str, language: str = ""):
         super().__init__(text, extract_code)
@@ -44,7 +44,7 @@ class ICode(IData):
             )
         )
 
-class IChoice(Instruction):
+class ChoiceI(Instruction):
     def __init__(self, context: str, *options: IList):
         self._context = context
         self._options = options
@@ -68,7 +68,7 @@ class IChoice(Instruction):
         keys = (wrap_text(option._items[0].key) for option in self._options)
         raise ExtractionError(f"Choice extraction failed: no valid key {keys} in {_data!r}")
 
-class IRepetition(Instruction):
+class RepetitionI(Instruction):
     def __init__(self, quantifier: str, *items: IItem):
         assert len(items) > 0, f"Need at least on item to describe a Repetition"
         self._quantifier = quantifier

@@ -11,7 +11,7 @@ def message_to_str(message: Message, idx: Optional[int] = None, tag: Optional[st
         f"\n{pad_text(message.get_content(), padding)}"
     )
 
-class LogPrint(Logger):
+class PrintLogger(Logger):
     @override
     def __init__(self):
         super().__init__()
@@ -31,7 +31,7 @@ class LogPrint(Logger):
     def close(self) -> None:
         pass
 
-class LogFunc(LogPrint):
+class FuncLogger(PrintLogger):
     @override
     def __init__(self, func: Callable[[str], Any]):
         super().__init__()
@@ -47,7 +47,7 @@ class LogFunc(LogPrint):
     def _log(self, message: Message, idx: Optional[int] = None, tag: Optional[str] = None) -> None:
         self._func(message_to_str(message, idx, tag, self._padding))
 
-class LogFile(LogPrint):
+class FileLogger(PrintLogger):
     @override
     def __init__(self, file_path: str | Path):
         super().__init__()
@@ -69,7 +69,7 @@ class LogFile(LogPrint):
     def close(self) -> None:
         self._file.close()
 
-class LogList(Logger):
+class ListLogger(Logger):
     @override
     def __init__(self, *loggers: Logger):
         super().__init__()
@@ -91,7 +91,7 @@ class LogList(Logger):
         for logger in self._loggers:
             logger.close()
 
-class LogReadable(Logger):
+class ReadableLogger(Logger):
     @override
     def __init__(self, logger: Logger):
         super().__init__()

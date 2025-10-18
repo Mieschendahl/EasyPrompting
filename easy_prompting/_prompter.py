@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from easy_prompting._instruction import IList, IItem
-from easy_prompting._interaction import Interaction
+from easy_prompting._debugger import Debugger
 from easy_prompting._utils import load_text, save_text, hash_str, wrap_text
 from easy_prompting._message import Role, Message
 from easy_prompting._lm import LM
@@ -13,8 +13,8 @@ class Prompter:
         self.set_lm(lm)
         self.set_messages([])
         self.set_logger()
-        self.set_interaction()
-        self.set_cache_path()
+        self.set_debugger()
+        self.set_cache()
         self.set_tag()
 
     def set_lm(self, lm: LM) -> None:
@@ -35,10 +35,10 @@ class Prompter:
     def get_messages(self) -> list[Message]:
         return self._messages
     
-    def set_cache_path(self, cache_path: Optional[str | Path] = None) -> None:
+    def set_cache(self, cache_path: Optional[str | Path] = None) -> None:
         self._cache_path = None if cache_path is None else Path(cache_path)
         
-    def get_cache_path(self) -> Optional[Path]:
+    def get_cache(self) -> Optional[Path]:
         return self._cache_path
 
     def set_logger(self, logger: Optional[Logger] = None) -> None:
@@ -47,18 +47,18 @@ class Prompter:
     def get_logger(self) -> Optional[Logger]:
         return self._logger
     
-    def set_interaction(self, interaction: Optional[Interaction] = None) -> None:
-        self._interaction = interaction
+    def set_debugger(self, debugger: Optional[Debugger] = None) -> None:
+        self._debugger = debugger
 
-    def get_interaction(self) -> Optional[Interaction]:
-        return self._interaction
+    def get_debugger(self) -> Optional[Debugger]:
+        return self._debugger
     
     def get_copy(self) -> "Prompter":
         prompter = Prompter(self.get_lm())
         prompter.set_messages(self.get_messages().copy())
         prompter.set_logger(self.get_logger())
-        prompter.set_interaction(self.get_interaction())
-        prompter.set_cache_path(self.get_cache_path())
+        prompter.set_debugger(self.get_debugger())
+        prompter.set_cache(self.get_cache())
         prompter.set_tag()
         return prompter
 
@@ -69,8 +69,8 @@ class Prompter:
             self._logger.log(message, len(self._messages)-1, self._tag)
 
     def add_completion(self, stop: Optional[str] = None) -> None:
-        if self._interaction is not None:
-            self._interaction.interact(self)
+        if self._debugger is not None:
+            self._debugger.debug(self)
         if self._cache_path is None:
             completion = self._lm.get_completion(self._messages, stop)
         else:

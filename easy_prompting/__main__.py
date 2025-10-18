@@ -1,28 +1,29 @@
 import argparse
-from easy_prompting.prebuilt import Prompter, GPT, LogPrint, PrintInteraction, list_text, pad_text, delimit_code, IList, IItem, IText, ICode, IChoice
+
+from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger, list_text, pad_text, delimit_code, IList, IItem, TextI, CodeI, ChoiceI
 
 def chat_bot() -> None:
     lm = GPT("gpt-4o-mini", 0)
     prompter = Prompter(lm)
-    prompter.set_logger(LogPrint())
-    prompter.set_interaction(PrintInteraction())
-    prompter.set_cache_path("completions")
+    prompter.set_logger(PrintLogger())
+    prompter.set_debugger(PrintDebugger())
+    prompter.set_cache("completions")
     prompter.set_tag("chat bot")
     prompter.add_message(
-        "You are a ChatBot and should talk with the user",
+        "You are a ChatBot. Talk with the user.",
         role="developer"
     )
     while True:
         prompter.add_completion()
 
-def python_agent(task: str) -> None:
+def programmer(task: str) -> None:
     lm = GPT("gpt-4o-mini", 0)
-    agent = Prompter(lm)
-    agent.set_logger(LogPrint())
-    agent.set_interaction(PrintInteraction())
-    agent.set_cache_path("completions")
-    agent.set_tag("shell agent")
-    agent.add_message(
+    prompter = Prompter(lm)
+    prompter.set_logger(PrintLogger())
+    prompter.set_debugger(PrintDebugger())
+    prompter.set_cache("completions")
+    prompter.set_tag("programmer")
+    prompter.add_message(
         list_text(
             f"You are an autonomous agent and python expert",
             f"The user will give you a task and you should give him python code that solves the task",
@@ -30,32 +31,32 @@ def python_agent(task: str) -> None:
         ),
         role="developer"
     )
-    agent.add_message(
+    prompter.add_message(
         task
     )
-    (choice, data) = agent.get_data(
+    (choice, data) = prompter.get_data(
         IList(
             f"Do the following",
             IItem(
                 "think",
-                IText(f"Think about if and how the task can be solved")
+                TextI(f"Think about if and how the task can be solved")
             ),
             IItem(
                 "choose",
-                IChoice(
+                ChoiceI(
                     f"Choose one of the following options",
                     IList(
                         f"If the task is impossible to achieve",
                         IItem(
                             "impossible",
-                            IText(f"Explain why it is impossible")
+                            TextI(f"Explain why it is impossible")
                         )
                     ),
                     IList(
                         f"Otherwise",
                         IItem(
                             "python",
-                            ICode(f"Write the python code that the solves the task", "python")
+                            CodeI(f"Write the python code that the solves the task", "python")
                         )
                     )
                 )
@@ -89,14 +90,14 @@ if __name__ == "__main__":
             chat_bot()
         case "square root":
             # Possible task
-            python_agent(
+            programmer(
                 f"I need a function that calculates the square root of a whole number, if that square root is a natural number."
                 f"\nIf it is not a natural number, the function can just return None."
             )
         case "halting problem":
             # Impossible task
-            python_agent(
+            programmer(
                 f"I need a function that determines if the code of a python function would return in finite time when executed."
             )
         case name:
-            print("Unknown demo: {name}")
+            print(f"Unknown demo: \"{name}\"")
