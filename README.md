@@ -14,12 +14,16 @@ Prompting LMs usually entails a couple of challenges:
 ## Demo
 Here is how to make a simple chat bot using the logger and debugger features:
 ```python
-from easy_prompting.prebuilt import *
+from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger
 
 def chat_bot() -> None:
-    prompter = Prompter(GPT())
-    prompter.set_logger(PrintLogger())
-    prompter.set_debugger(PrintDebugger())
+    """Chat with an LM"""
+    lm = GPT("gpt-4o-mini")
+    prompter = Prompter(lm)
+    prompter.set_logger(PrintLogger()) # print conversation
+    prompter.set_debugger(PrintDebugger()) # get user input
+    prompter.set_tag("chat bot") # set conversation tag
+    prompter.set_cache("completions")
     prompter.add_message(
         "You are a ChatBot. Talk with the user.",
         role="developer"
@@ -31,17 +35,18 @@ def chat_bot() -> None:
 ```
 Shell output:
 ```bash
-Message(tag=None, role='developer', idx=0):
+Message(tag='chat bot', role='developer', idx=0):
   You are a ChatBot. Talk with the user.
 
 Input(role='user', continue='↵', exit='Ctrl+c'):
-  Hi :) # Waited for user input
+  Hi :) # Get user input
 
-Message(tag=None, role='user', idx=1):
-  Hi :) # Send user input to LM
+Message(tag='chat bot', role='user', idx=1):
+  Hi :) # Send user input
 
-Message(tag=None, role='assistant', idx=2):
+Message(tag='chat bot', role='assistant', idx=2):
   Hello! 😊 How can I assist you today?
+
 ```
 
 `easy_prompting/__main__.py` demonstrates simple use cases for this library, which can also be tested after following the setup instructions in `SETUP.md`.
@@ -50,7 +55,7 @@ Message(tag=None, role='assistant', idx=2):
 
 EasyPrompting provides two main entry points:
 - `easy_prompting` which contains the core architecture
-- `easy_prompting.prebuilt` which contains additional auxilary architecture for convinience in common use cases
+- `easy_prompting.prebuilt` which additionally contains auxilary architecture for convinience in common use cases
 
 ### Core Architecture
 

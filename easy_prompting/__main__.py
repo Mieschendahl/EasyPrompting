@@ -3,20 +3,24 @@ import argparse
 from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger, list_text, pad_text, delimit_code, IList, IItem, TextI, CodeI, ChoiceI
 
 def chat_bot() -> None:
-    lm = GPT("gpt-4o-mini", 0)
+    """Chat with an LM"""
+    lm = GPT("gpt-4o-mini")
     prompter = Prompter(lm)
-    prompter.set_logger(PrintLogger())
-    prompter.set_debugger(PrintDebugger())
+    prompter.set_logger(PrintLogger()) # print conversation
+    prompter.set_debugger(PrintDebugger()) # get user input
+    prompter.set_tag("chat bot") # set conversation tag
     prompter.set_cache("completions")
-    prompter.set_tag("chat bot")
     prompter.add_message(
         "You are a ChatBot. Talk with the user.",
         role="developer"
     )
     while True:
+        # 1. Wait for user input (debug mode)
+        # 2. Get response from LM
         prompter.add_completion()
 
 def programmer(task: str) -> None:
+    """Let the LM solve a programming task"""
     lm = GPT("gpt-4o-mini", 0)
     prompter = Prompter(lm)
     prompter.set_logger(PrintLogger())
@@ -84,7 +88,6 @@ if __name__ == "__main__":
         default="chat bot"
     )
     args = parser.parse_args()
-
     match args.demo:
         case "chat bot":
             chat_bot()
