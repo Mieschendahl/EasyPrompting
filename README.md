@@ -51,7 +51,11 @@ Message(tag='chat bot', role='assistant', idx=2):
 
 ```
 
-`easy_prompting/__main__.py` demonstrates simple use cases for this library, which can also be tested after following the setup instructions in `SETUP.md`.
+`easy_prompting/__main__.py` demonstrates simple use cases for this library.
+
+## Setup
+
+`SETUP.md` contains all the setup instructions.
 
 ## Manual
 
