@@ -78,7 +78,7 @@ def programmer(task: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="python3 -m easy_prompting",
+        prog="easy_prompting",
         description="Run one of the EasyPrompting demos."
     )
     parser.add_argument(
