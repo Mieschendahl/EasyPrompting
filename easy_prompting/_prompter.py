@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Optional
 
-from easy_prompting._instruction import IList, IItem
+from easy_prompting._instruction import ListI, ItemI
 from easy_prompting._debugger import Debugger
 from easy_prompting._utils import load_text, save_text, hash_str, wrap_text
 from easy_prompting._message import Role, Message
@@ -83,10 +83,10 @@ class Prompter:
             completion += stop
         self.add_message(completion, "assistant")
     
-    def get_data(self, ilist: IList, role: Role = "user") -> Any:
-        items = ilist._items + [IItem(IList.stop)]
-        ilist = IList(ilist._context, *items)
+    def get_data(self, ilist: ListI, role: Role = "user") -> Any:
+        items = ilist._items + [ItemI(ListI.stop)]
+        ilist = ListI(ilist._context, *items)
         self.add_message(ilist.describe(), role)
-        self.add_completion(wrap_text(IList.stop))
+        self.add_completion(wrap_text(ListI.stop))
         completion = self._messages[-1].get_content()
         return ilist.extract(completion)[:-1]

@@ -17,14 +17,14 @@ class Instruction(ABC):
         pass
 
 @dataclass
-class IItem:
+class ItemI:
     key: str
     value: Optional[Instruction] = None
 
-class IList(Instruction):
+class ListI(Instruction):
     stop = "stop"
 
-    def __init__(self, context: str, *items: IItem, effect: Optional[str] = None):
+    def __init__(self, context: str, *items: ItemI, effect: Optional[str] = None):
         assert len(items) > 0, "Need at least one item in a List"
         self._context = context
         self._items = list(items)

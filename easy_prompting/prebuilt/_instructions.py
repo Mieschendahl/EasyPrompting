@@ -1,6 +1,6 @@
 from typing import Any, Callable, override
 
-from easy_prompting._instruction import ExtractionError, Instruction, IItem, IList
+from easy_prompting._instruction import ExtractionError, Instruction, ItemI, ListI
 from easy_prompting._utils import enumerate_text, wrap_text
 from easy_prompting.prebuilt._utils import extract_code, list_text
 
@@ -45,7 +45,7 @@ class CodeI(DataI):
         )
 
 class ChoiceI(Instruction):
-    def __init__(self, context: str, *options: IList):
+    def __init__(self, context: str, *options: ListI):
         self._context = context
         self._options = options
 
@@ -69,7 +69,7 @@ class ChoiceI(Instruction):
         raise ExtractionError(f"Choice extraction failed: no valid key {keys} in {_data!r}")
 
 class RepetitionI(Instruction):
-    def __init__(self, quantifier: str, *items: IItem):
+    def __init__(self, quantifier: str, *items: ItemI):
         assert len(items) > 0, f"Need at least on item to describe a Repetition"
         self._quantifier = quantifier
         self._items = list(items)

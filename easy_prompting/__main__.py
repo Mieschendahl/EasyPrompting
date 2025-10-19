@@ -1,6 +1,6 @@
 import argparse
 
-from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger, list_text, pad_text, delimit_code, IList, IItem, TextI, CodeI, ChoiceI
+from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger, list_text, pad_text, delimit_code, ListI, ItemI, TextI, CodeI, ChoiceI
 
 def chat_bot() -> None:
     """Chat with an LM"""
@@ -39,26 +39,26 @@ def programmer(task: str) -> None:
         task
     )
     (choice, data) = prompter.get_data(
-        IList(
+        ListI(
             f"Do the following",
-            IItem(
+            ItemI(
                 "think",
                 TextI(f"Think about if and how the task can be solved")
             ),
-            IItem(
+            ItemI(
                 "choose",
                 ChoiceI(
                     f"Choose one of the following options",
-                    IList(
+                    ListI(
                         f"If the task is impossible to achieve",
-                        IItem(
+                        ItemI(
                             "impossible",
                             TextI(f"Explain why it is impossible")
                         )
                     ),
-                    IList(
+                    ListI(
                         f"Otherwise",
-                        IItem(
+                        ItemI(
                             "python",
                             CodeI(f"Write the python code that the solves the task", "python")
                         )
