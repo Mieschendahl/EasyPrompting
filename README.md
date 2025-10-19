@@ -12,6 +12,7 @@ Prompting LMs usually entails a couple of challenges:
 - Getting responses in a specified format from the LM
 
 ## Demo
+
 Here is how to make a simple chat bot using the logger and debugger features:
 ```python
 from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger
@@ -33,6 +34,7 @@ def chat_bot() -> None:
         # 2. Get response from LM
         prompter.add_completion()
 ```
+
 Shell output:
 ```bash
 Message(tag='chat bot', role='developer', idx=0):
