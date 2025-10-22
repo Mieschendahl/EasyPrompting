@@ -1,6 +1,6 @@
 [project]
 name = "easy_prompting"
-version = "1.0.0"
+version = "5.0.1"
 description = "A Python library for simplifing languge model interactions."
 authors = [{name = "Leonardo Mieschendahl"}]
 
