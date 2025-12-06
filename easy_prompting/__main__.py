@@ -68,6 +68,7 @@ def programmer(task: str) -> None:
             add_stop=True
         )
     )[1]
+    print("\nResult:")
     match choice, data[0]:
         case "impossible", explanation:
             print(f"The agent determined that the task is impossible to solve for the following reason:")

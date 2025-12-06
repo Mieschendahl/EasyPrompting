@@ -1,9 +1,9 @@
 from functools import partial
 from typing import Any, Callable, Optional, override
-from easy_prompting._debugger import Debugger
-from easy_prompting._message import Role
-from easy_prompting._prompter import Prompter
-from easy_prompting._utils import pad_text
+from easy_prompting.debugger import Debugger
+from easy_prompting.message import Role
+from easy_prompting.prompter import Prompter
+from easy_prompting.utils import pad_text
 
 class PrintDebugger(Debugger):
     def __init__(self, printer: Optional[Callable[[str], Any]] = None, role: Role = "user"):

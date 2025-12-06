@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import Any, Callable, Optional, override
 
-from easy_prompting._message import Message, roles, Role
-from easy_prompting._logger import Logger
-from easy_prompting._utils import create_dir, pad_text
+from easy_prompting.message import Message, roles, Role
+from easy_prompting.logger import Logger
+from easy_prompting.utils import create_dir, pad_text
 
 def message_to_str(message: Message, idx: Optional[int] = None, tag: Optional[str] = None, padding: str = "  ") -> str:
     return (

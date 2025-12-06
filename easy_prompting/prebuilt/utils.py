@@ -1,5 +1,5 @@
 from typing import Optional
-from easy_prompting._utils import pad_text, scope_text
+from easy_prompting.utils import pad_text, scope_text
 
 def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
     text_out = "\n".join(f"- {pad_text(text, pad_first=False)}" for text in texts if text is not None)

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Self, Optional
 
-from easy_prompting._message import Message
+from easy_prompting.message import Message
 
 class Logger(ABC):
     def __init__(self):

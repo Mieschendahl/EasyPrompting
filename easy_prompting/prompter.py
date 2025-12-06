@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import Any, Optional
 
-from easy_prompting._instruction import Instruction
-from easy_prompting._debugger import Debugger
-from easy_prompting._utils import load_text, save_text, hash_str, wrap_text
-from easy_prompting._message import Role, Message
-from easy_prompting._lm import LM
-from easy_prompting._logger import Logger
+from easy_prompting.instruction import Instruction
+from easy_prompting.debugger import Debugger
+from easy_prompting.utils import load_text, save_text, hash_str, wrap_text
+from easy_prompting.message import Role, Message
+from easy_prompting.lm import LM
+from easy_prompting.logger import Logger
 
 class Prompter:
     def __init__(self, lm: LM):

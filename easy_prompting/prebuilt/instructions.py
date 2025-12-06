@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, override
 
-from easy_prompting._instruction import ExtractionError, Instruction
-from easy_prompting._utils import enumerate_text, pad_text, scope_text, wrap_text
-from easy_prompting.prebuilt._utils import extract_code, list_text
+from easy_prompting.instruction import ExtractionError, Instruction
+from easy_prompting.utils import enumerate_text, pad_text, scope_text, wrap_text
+from easy_prompting.prebuilt.utils import extract_code, list_text
 
 class DataI(Instruction):
     def __init__(self, text: str, extractor: Callable[[str], Any]):

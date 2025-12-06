@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from easy_prompting._message import Message
+from easy_prompting.message import Message
 
 class LMError(Exception):
     pass
