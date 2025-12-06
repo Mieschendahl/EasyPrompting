@@ -61,7 +61,7 @@ Message(tag='chat bot', role='assistant', idx=2):
 
 EasyPrompting provides two main entry points:
 - `easy_prompting` which contains the core architecture
-- `easy_prompting.prebuilt` which additionally contains auxilary architecture for convinience in common use cases
+- `easy_prompting.prebuilt` which additionally contains auxilary architecture for convinience for common use cases
 
 ### Core Architecture
 
