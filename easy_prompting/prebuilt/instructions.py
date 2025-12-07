@@ -20,7 +20,7 @@ def extract_code(code: str, language: str = "") -> str:
 def delimit_code(text: str, keyword: str = "") -> str:
     return f"```{keyword}\n{text}\n```"
 
-class DataI(Instruction):
+class DataInstr(Instruction):
     def __init__(self, text: str, extractor: Callable[[str], Any] = lambda x: x.strip()):
         self._text = text
         self._extractor = extractor
@@ -33,7 +33,7 @@ class DataI(Instruction):
     def extract(self, data: str) -> Any:
         return self._extractor(data)
 
-class CodeI(DataI):
+class CodeInstr(DataInstr):
     @override
     def __init__(self, text: str, language: str = ""):
         super().__init__(text, extract_code)
@@ -51,7 +51,7 @@ class CodeI(DataI):
             )
         )
 
-class ContextI(Instruction):
+class ContextInstr(Instruction):
     def __init__(self, pre: str, instruction: Instruction, post: Optional[str] = None):
         self._pre = pre
         self._instruction = instruction
@@ -62,7 +62,7 @@ class ContextI(Instruction):
         return (
             self._pre
             + scope_text(self._instruction.describe())
-            + ("" if self._post is None else f"\n{self._post}")
+            + ("" if self._post is None else f"\n-> {self._post}")
         )
     
     @override
@@ -75,7 +75,7 @@ class ListItem:
         self._key = key
         self._instruction = instruction
 
-class ListI(Instruction):
+class ListInstr(Instruction):
     def __init__(self, *items: ListItem):
         self._items = items
     
@@ -103,35 +103,37 @@ class ListI(Instruction):
         return extractions
 
 @dataclass
-class ChoiceOption:
-    def __init__(self, condition: str, key: str, instruction: Instruction):
+class ChoiceItem:
+    def __init__(self, condition: str, key: str, instruction: Instruction, effect: Optional[str] = None):
         self._condition = condition
         self._key = key
         self._instruction = instruction
+        self._effect = effect
 
-class ChoiceI(Instruction):
-    def __init__(self, *options: ChoiceOption):
-        self._options = options
+class ChoiceInstr(Instruction):
+    def __init__(self, *items: ChoiceItem):
+        self._items = items
     
     @override
     def describe(self) -> str:
         descriptions: list[str] = []
-        for option in self._options:
+        for item in self._items:
             descriptions.append(
-                option._condition
+                item._condition
                 + enumerate_text(
-                    f"Write \"{option._key}\"",
-                    option._instruction.describe(),
+                    f"Write \"{item._key}\"",
+                    item._instruction.describe(),
                     add_scope=True
                 )
+                + ("" if item._effect is None else f"\n-> {item._effect}")
             )
         return list_text(*descriptions)
 
     @override
     def extract(self, data: str) -> tuple[str, Any]:
-        for option in self._options:
-            if option._key in data:
-                sub_data = data.split(option._key, 1)[1]
-                return option._key, option._instruction.extract(sub_data)
-        keys = [option._key for option in self._options]
+        for item in self._items:
+            if item._key in data:
+                sub_data = data.split(item._key, 1)[1]
+                return item._key, item._instruction.extract(sub_data)
+        keys = [item._key for item in self._items]
         raise ExtractionError(f"List extraction failed: no valid option key {keys!r} found in data {data!r}")

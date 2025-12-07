@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger, list_text, ListItem, ChoiceOption, pad_text, delimit_code, DataI, CodeI, ContextI, ListI, ChoiceI
+from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger, list_text, ListItem, ChoiceItem, pad_text, delimit_code, DataInstr, CodeInstr, ContextInstr, ListInstr, ChoiceInstr
 
 def chat_bot(model_name: str) -> None:
     """Chat with an LM"""
@@ -40,25 +40,25 @@ def programmer(model_name: str, task: str) -> None:
         task
     )
     _, (choice, data) = prompter.get_data(
-        ListI(
+        ListInstr(
             ListItem(
                 "think:",
-                DataI(f"Think about if and how the task can be solved")
+                DataInstr(f"Think about if and how the task can be solved")
             ),
             ListItem(
                 "choose:",
-                ContextI(
+                ContextInstr(
                     f"Choose one of the following options",
-                    ChoiceI(
-                        ChoiceOption(
+                    ChoiceInstr(
+                        ChoiceItem(
                             f"If the task is impossible",
                             f"impossible:",
-                            DataI(f"Explain why it is impossible")
+                            DataInstr(f"Explain why it is impossible")
                         ),
-                        ChoiceOption(
+                        ChoiceItem(
                             f"Otherwise",
                             f"possible:",
-                            CodeI(f"Write the python code that the solves the task", "python")
+                            CodeInstr(f"Write the python code that the solves the task", "python")
                         )
                     )
                 )
@@ -71,9 +71,9 @@ def programmer(model_name: str, task: str) -> None:
             print(f"The agent determined that the task is impossible to solve for the following reason:")
             print(pad_text(explanation, "  "))
             return None
-        case "code:", code:
+        case "possible:", code:
             print(f"The agent suggest the following python code to solve the task:")
-            print(pad_text(delimit_code(code, "python"), "  "))
+            print(pad_text(code, "  "))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
