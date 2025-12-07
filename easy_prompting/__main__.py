@@ -1,15 +1,16 @@
 import argparse
+from pathlib import Path
 
-from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger, list_text, pad_text, delimit_code, Item, ListI, TextI, CodeI, ChoiceI
+from easy_prompting.prebuilt import GPT, Prompter, PrintLogger, PrintDebugger, list_text, ListItem, ChoiceOption, pad_text, delimit_code, DataI, CodeI, ContextI, ListI, ChoiceI
 
-def chat_bot() -> None:
+def chat_bot(model_name: str) -> None:
     """Chat with an LM"""
-    lm = GPT("gpt-4o-mini")
+    lm = GPT(model_name)
     prompter = Prompter(lm)
     prompter.set_logger(PrintLogger()) # print conversation
     prompter.set_debugger(PrintDebugger()) # get user input
     prompter.set_tag("chat bot") # set conversation tag
-    prompter.set_cache("completions")
+    prompter.set_cache(Path(f"completions/{model_name}"))
     prompter.add_message(
         "You are a ChatBot. Talk with the user.",
         role="developer"
@@ -19,13 +20,13 @@ def chat_bot() -> None:
         # 2. Get response from LM
         prompter.add_completion()
 
-def programmer(task: str) -> None:
+def programmer(model_name: str, task: str) -> None:
     """Let the LM solve a programming task"""
     lm = GPT("gpt-4o-mini", 0)
     prompter = Prompter(lm)
     prompter.set_logger(PrintLogger())
     prompter.set_debugger(PrintDebugger())
-    prompter.set_cache("completions")
+    prompter.set_cache(Path(f"completions/{model_name}"))
     prompter.set_tag("programmer")
     prompter.add_message(
         list_text(
@@ -38,43 +39,39 @@ def programmer(task: str) -> None:
     prompter.add_message(
         task
     )
-    (choice, data) = prompter.get_data(
+    _, (choice, data) = prompter.get_data(
         ListI(
-            f"Do the following",
-            Item(
-                "think",
-                TextI(f"Think about if and how the task can be solved")
+            ListItem(
+                "think:",
+                DataI(f"Think about if and how the task can be solved")
             ),
-            Item(
-                "choose",
-                ChoiceI(
+            ListItem(
+                "choose:",
+                ContextI(
                     f"Choose one of the following options",
-                    ListI(
-                        f"If the task is impossible to achieve",
-                        Item(
-                            "impossible",
-                            TextI(f"Explain why it is impossible")
-                        )
-                    ),
-                    ListI(
-                        f"Otherwise",
-                        Item(
-                            "python",
+                    ChoiceI(
+                        ChoiceOption(
+                            f"If the task is impossible",
+                            f"impossible:",
+                            DataI(f"Explain why it is impossible")
+                        ),
+                        ChoiceOption(
+                            f"Otherwise",
+                            f"possible:",
                             CodeI(f"Write the python code that the solves the task", "python")
                         )
                     )
                 )
-            ),
-            add_stop=True
+            )
         )
-    )[1]
+    )
     print("\nResult:")
-    match choice, data[0]:
-        case "impossible", explanation:
+    match choice, data:
+        case "impossible:", explanation:
             print(f"The agent determined that the task is impossible to solve for the following reason:")
             print(pad_text(explanation, "  "))
             return None
-        case "python", code:
+        case "code:", code:
             print(f"The agent suggest the following python code to solve the task:")
             print(pad_text(delimit_code(code, "python"), "  "))
 
@@ -89,19 +86,27 @@ if __name__ == "__main__":
         help="Which demo to run (default='chat bot', 'square root', 'halting problem')",
         default="chat bot"
     )
+    parser.add_argument(
+        "--model-name",
+        metavar="NAME",
+        help="The OpenAI model to use (default='gpt-4o-mini')",
+        default="gpt-4o-mini"
+    )
     args = parser.parse_args()
     match args.demo:
         case "chat bot":
-            chat_bot()
+            chat_bot(args.model_name)
         case "square root":
             # Possible task
             programmer(
+                args.model_name,
                 f"I need a function that calculates the square root of a whole number, if that square root is a natural number."
                 f"\nIf it is not a natural number, the function can just return None."
             )
         case "halting problem":
             # Impossible task
             programmer(
+                args.model_name,
                 f"I need a function that determines if the code of a python function would return in finite time when executed."
             )
         case name:

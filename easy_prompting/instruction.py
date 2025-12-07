@@ -12,6 +12,3 @@ class Instruction(ABC):
     @abstractmethod
     def extract(self, data: str) -> Any:
         pass
-    
-    def get_stop(self) -> Optional[str]:
-        return None

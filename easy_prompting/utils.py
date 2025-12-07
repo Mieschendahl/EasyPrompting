@@ -32,9 +32,6 @@ def pad_text(text: str, padding: str = "  ", pad_first: bool = True) -> str:
         return "\n".join(f"{padding}{line}" for line in text.split("\n"))
     return f"\n{padding}".join(text.split("\n"))
 
-def wrap_text(text: str) -> str:
-    return f"[[{text}]]"
-
 def scope_text(text: str) -> str:
     return " {\n" + pad_text(text) + "\n}"
 
@@ -49,3 +46,12 @@ def enumerate_text(*texts: Optional[str], add_scope: bool = False) -> str:
     if add_scope:
         return scope_text(text_out)
     return text_out
+
+def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
+    text_out = "\n".join(f"- {pad_text(text, pad_first=False)}" for text in texts if text is not None)
+    if add_scope:
+        return scope_text(text_out)
+    return text_out
+
+def wrap_text(text: str) -> str:
+    return f"[[{text}]]"

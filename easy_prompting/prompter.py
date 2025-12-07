@@ -83,8 +83,8 @@ class Prompter:
             completion += stop
         self.add_message(completion, "assistant")
 
-    def get_data(self, instruction: Instruction, role: Role = "user") -> Any:
+    def get_data(self, instruction: Instruction, stop: Optional[str] = None, role: Role = "user") -> Any:
         self.add_message(instruction.describe(), role)
-        self.add_completion(instruction.get_stop())
+        self.add_completion(stop)
         completion = self._messages[-1].get_content()
         return instruction.extract(completion)

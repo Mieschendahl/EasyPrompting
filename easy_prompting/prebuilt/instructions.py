@@ -2,11 +2,26 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional, override
 
 from easy_prompting.instruction import ExtractionError, Instruction
-from easy_prompting.utils import enumerate_text, pad_text, scope_text, wrap_text
-from easy_prompting.prebuilt.utils import extract_code, list_text
+from easy_prompting.utils import scope_text, enumerate_text, list_text, wrap_text
+
+def extract_code(code: str, language: str = "") -> str:
+    lines = code.split("\n")
+    start = None
+    for i, line in enumerate(lines):
+        if line.startswith("```" + language):
+            start = i + 1
+            break
+    if start is not None:
+        for i, line in enumerate(lines[start:]):
+            if line.startswith("```"):
+                return "\n".join(lines[start:start+i]).strip()
+    return "\n".join(line for line in lines if not line.startswith("```")).strip()
+
+def delimit_code(text: str, keyword: str = "") -> str:
+    return f"```{keyword}\n{text}\n```"
 
 class DataI(Instruction):
-    def __init__(self, text: str, extractor: Callable[[str], Any]):
+    def __init__(self, text: str, extractor: Callable[[str], Any] = lambda x: x.strip()):
         self._text = text
         self._extractor = extractor
     
@@ -16,15 +31,7 @@ class DataI(Instruction):
 
     @override
     def extract(self, data: str) -> Any:
-        try:
-            return self._extractor(data)
-        except Exception as e:
-            raise ExtractionError(f"Data extraction failed: extractor {self._extractor} raised an error for {data!r}") from e
-
-class TextI(DataI):
-    @override
-    def __init__(self, text: str):
-        super().__init__(text, lambda x: x.strip())
+        return self._extractor(data)
 
 class CodeI(DataI):
     @override
@@ -36,128 +43,95 @@ class CodeI(DataI):
     def describe(self) -> str:
         return (
             f"Do the following"
-            +
-            enumerate_text(
-                f"Write \"```{self._language}\\n\"",
+            + enumerate_text(
+                f"Write \"```{self._language}\"",
                 self._text,
-                f"Write \"\\n```\"",
+                f"Write \"```\"",
                 add_scope=True
             )
         )
 
-@dataclass
-class Item:
-    key: str
-    value: Optional[Instruction] = None
-
-class ListI(Instruction):
-    stop = "stop"
-
-    def __init__(self, context: str, *items: Item, add_stop: bool = False, effect: Optional[str] = None):
-        assert len(items) > 0, "Need at least one item in a List"
-        self._context = context
-        self._items = list(items)
-        self._add_stop = add_stop
-        if self._add_stop:
-            self._items.append(Item(ListI.stop))
-        self._effect = effect
-
-    @override
-    def describe(self) -> str:
-        items = []
-        for item in self._items:
-            items.append(f"Write \"{wrap_text(item.key)}\"")
-            if item.value is not None:
-                items.append(item.value.describe())
-        effect = ""
-        if self._effect is not None:
-            if len(items) > 0:
-                effect += "\n"
-            effect += f"-> {pad_text(self._effect, pad_first=False)}"
-        return self._context + scope_text(enumerate_text(*items) + effect)
-
-    @override
-    def extract(self, data: str) -> list[Any]:
-        extraction = []
-        for item in self._items:
-            key = wrap_text(item.key)
-            if key not in data:
-                raise ExtractionError(f"List extraction failed: missing key {key!r} in {data!r}")
-            head, data = data.split(key, 1)
-            extraction.append(head)
-        extraction = extraction[1:] + [data]
-        extraction_out = []
-        for i, item in enumerate(self._items):
-            extraction_out.append(extraction[i] if item.value is None else item.value.extract(extraction[i]))
-        if self._add_stop:
-            return extraction_out[:-1]
-        return extraction_out
+class ContextI(Instruction):
+    def __init__(self, pre: str, instruction: Instruction, post: Optional[str] = None):
+        self._pre = pre
+        self._instruction = instruction
+        self._post = post
     
-    @override
-    def get_stop(self) -> Optional[str]:
-        if self._add_stop:
-            return wrap_text(ListI.stop)
-
-class RepetitionI(Instruction):
-    def __init__(self, quantifier: str, *items: Item):
-        assert len(items) > 0, f"Need at least on item to describe a Repetition"
-        self._quantifier = quantifier
-        self._items = list(items)
-
-    @override
-    def describe(self) -> str:
-        items = []
-        for item in self._items:
-            items.append(f"Write \"{wrap_text(item.key)}\"")
-            if item.value is not None:
-                items.append(item.value.describe())
-        
-        return self._quantifier + enumerate_text(*items, add_scope=True)
-
-    @override
-    def extract(self, data: str) -> Any:
-        first_key = wrap_text(self._items[0].key)
-        if first_key not in data:
-            return []
-        extractions = []
-        while True:
-            extraction = []
-            for item in self._items:
-                key = wrap_text(item.key)
-                if key not in data:
-                    raise ExtractionError(f"Repetition extraction failed: missing key {key!r} in {data!r}")
-                head, data = data.split(key, 1)
-                extraction.append(head)
-            extraction = extraction[1:] + [data]
-            if first_key in extraction[-1]:
-                extraction[-1], _ = data.split(first_key, 1)
-            extraction_out = []
-            for i, item in enumerate(self._items):
-                extraction_out.append(extraction[i] if item.value is None else item.value.extract(extraction[i]))
-            extractions.append(extraction_out)
-            if first_key not in data:
-                return extractions
-
-class ChoiceI(Instruction):
-    def __init__(self, context: str, *options: ListI):
-        self._context = context
-        self._options = options
-
     @override
     def describe(self) -> str:
         return (
-            self._context
-            +
-            list_text(*[option.describe() for option in self._options], add_scope=True)
+            self._pre
+            + scope_text(self._instruction.describe())
+            + ("" if self._post is None else f"\n{self._post}")
         )
+    
+    @override
+    def extract(self, data: str, depth: int = 0) -> list[Any]:
+        return self._instruction.extract(data)
+
+@dataclass
+class ListItem:
+    def __init__(self, key: str, instruction: Instruction):
+        self._key = key
+        self._instruction = instruction
+
+class ListI(Instruction):
+    def __init__(self, *items: ListItem):
+        self._items = items
+    
+    @override
+    def describe(self) -> str:
+        descriptions: list[str] = []
+        for item in self._items:
+            descriptions.append(f"Write \"{item._key}\"")
+            descriptions.append(item._instruction.describe())
+        return enumerate_text(*descriptions)
 
     @override
-    def extract(self, data) -> tuple[str, Any]:
+    def extract(self, data: str) -> list[Any]:
         _data = data
-        keys = []
+        sub_data: list[str] = []
+        for item in self._items:
+            if item._key not in data:
+                raise ExtractionError(f"Enumerate extraction failed: key {item._key!r} missing in data {_data!r}")
+            head, data = data.split(item._key, 1)
+            sub_data.append(head)
+        sub_data = sub_data[1:] + [data]
+        extractions = []
+        for _sub_data, item in zip(sub_data, self._items):
+            extractions.append(item._instruction.extract(_sub_data))
+        return extractions
+
+@dataclass
+class ChoiceOption:
+    def __init__(self, condition: str, key: str, instruction: Instruction):
+        self._condition = condition
+        self._key = key
+        self._instruction = instruction
+
+class ChoiceI(Instruction):
+    def __init__(self, *options: ChoiceOption):
+        self._options = options
+    
+    @override
+    def describe(self) -> str:
+        descriptions: list[str] = []
         for option in self._options:
-            key = wrap_text(option._items[0].key)
-            if key in data:
-                return option._items[0].key, option.extract(data)
-        keys = (wrap_text(option._items[0].key) for option in self._options)
-        raise ExtractionError(f"Choice extraction failed: no valid key {keys} in {_data!r}")
+            descriptions.append(
+                option._condition
+                + enumerate_text(
+                    f"Write \"{option._key}\"",
+                    option._instruction.describe(),
+                    add_scope=True
+                )
+            )
+        return list_text(*descriptions)
+
+    @override
+    def extract(self, data: str) -> tuple[str, Any]:
+        for option in self._options:
+            if option._key in data:
+                sub_data = data.split(option._key, 1)[1]
+                return option._key, option._instruction.extract(sub_data)
+        keys = [option._key for option in self._options]
+        raise ExtractionError(f"List extraction failed: no valid option key {keys!r} found in data {data!r}")
