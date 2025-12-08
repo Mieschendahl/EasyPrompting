@@ -69,7 +69,7 @@ class FileLogger(PrintLogger):
     def close(self) -> None:
         self._file.close()
 
-class ListLogger(Logger):
+class MultiLogger(Logger):
     @override
     def __init__(self, *loggers: Logger):
         super().__init__()
