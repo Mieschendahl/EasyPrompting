@@ -7,7 +7,7 @@ from easy_prompting.utils import create_dir, pad_text
 
 def message_to_str(message: Message, idx: Optional[int] = None, tag: Optional[str] = None, padding: str = "  ") -> str:
     return (
-        f"Message(tag={tag!r}, role={message.get_role()!r}, idx={idx}):"
+        f"Message(tag={tag!r}, idx={idx}, role={message.get_role()!r}):"
         f"\n{pad_text(message.get_content(), padding)}"
     )
 
