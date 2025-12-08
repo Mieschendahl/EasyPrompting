@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Callable, Optional, override
+from typing import Any, Callable, Literal, Optional, override
 
 from easy_prompting.message import Message, roles, Role
 from easy_prompting.logger import Logger
@@ -56,18 +56,22 @@ class FileLogger(PrintLogger):
     def set_file_path(self, file_path: str | Path) -> None:
         self._file_path = Path(file_path)
         create_dir(self._file_path.parent)
-        self._file = self._file_path.open("w", encoding="utf-8")
+        self._file = None
     
     def get_file_path(self) -> Path:
         return self._file_path
 
     @override
     def _log(self, message: Message, idx: Optional[int] = None, tag: Optional[str] = None) -> None:
+        if self._file is None:
+            self._file = self._file_path.open("a", encoding="utf-8")
         print(message_to_str(message, idx, tag, self._padding), end="\n\n", file=self._file, flush=True)
 
     @override
     def close(self) -> None:
-        self._file.close()
+        if self._file is not None:
+            self._file.close()
+            self._file = None
 
 class MultiLogger(Logger):
     @override
