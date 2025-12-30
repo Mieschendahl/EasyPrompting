@@ -56,6 +56,6 @@ def list_text(*texts: Optional[str], add_scope: bool = False) -> str:
 def wrap_text(text: str) -> str:
     return f"[[{text}]]"
 
-def multi_str(text: str, base: str = "| ") -> str:
+def multi_str(text: str) -> str:
     lines = text.split("\n")[1:-1]
-    return "\n".join(line.split(base)[1] for line in lines)
+    return "\n".join(lines)
