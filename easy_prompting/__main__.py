@@ -22,7 +22,7 @@ def chat_bot(model_name: str) -> None:
 
 def programmer(model_name: str, task: str) -> None:
     """Let the LM solve a programming task"""
-    lm = GPT("gpt-4o-mini", 0)
+    lm = GPT("gpt-4o-mini").set_config(temperature=0)
     prompter = Prompter(lm)
     prompter.set_logger(PrintLogger())
     prompter.set_debugger(PrintDebugger())
@@ -39,7 +39,7 @@ def programmer(model_name: str, task: str) -> None:
     prompter.add_message(
         task
     )
-    _, (choice, data) = prompter.get_data(
+    thoughts, (choice, data) = prompter.get_data(
         ListInstr(
             ListItem(
                 "think:",

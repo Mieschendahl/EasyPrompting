@@ -11,6 +11,8 @@ Prompting LMs usually entails a couple of challenges:
 - Having persistant memory over longer interactions
 - Getting responses in a specified format from the LM
 
+EasyPrompting is designed to tacle these challenges.
+
 ## Demo
 
 Here is how to make a simple chat bot using the logger and debugger features:
@@ -22,9 +24,9 @@ def chat_bot() -> None:
     lm = GPT("gpt-4o-mini")
     prompter = Prompter(lm)
     prompter.set_logger(PrintLogger()) # print conversation
-    prompter.set_debugger(PrintDebugger()) # get user input
-    prompter.set_tag("chat bot") # set conversation tag
-    prompter.set_cache("completions")
+    prompter.set_debugger(PrintDebugger()) # get user input via debug mode
+    prompter.set_tag("chat bot") # set a conversation tag
+    prompter.set_cache("completions") # set the cache directory
     prompter.add_message(
         "You are a ChatBot. Talk with the user.",
         role="developer"
@@ -67,7 +69,7 @@ EasyPrompting provides two main entry points:
 
 The core architecture focuses on the `prompter` class. It handles the interaction with the LM, as well as the caching of LM respones.
 
-The `LM` class provides an abstract interface to any LM implementation.
+The `LM` class provides an abstract interface to any given LM implementation.
 
 The `Logger` class provides an abstract interface for logging and printing conversations between the `prompter` and the `LM`.
 

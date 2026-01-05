@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional, override
 
 from easy_prompting.instruction import ExtractionError, Instruction
-from easy_prompting.utils import scope_text, enumerate_text, list_text, wrap_text
+from easy_prompting.utils import scope_text, enumerate_text, list_text
 
 def extract_code(code: str, language: str = "") -> str:
     lines = code.split("\n")
@@ -56,7 +56,7 @@ class ContextInstr(Instruction):
         self._pre = pre
         self._instruction = instruction
         self._post = post
-    
+
     @override
     def describe(self) -> str:
         return (
@@ -64,7 +64,7 @@ class ContextInstr(Instruction):
             + scope_text(self._instruction.describe())
             + ("" if self._post is None else f"\n-> {self._post}")
         )
-    
+
     @override
     def extract(self, data: str, depth: int = 0) -> list[Any]:
         return self._instruction.extract(data)
@@ -78,7 +78,7 @@ class ListItem:
 class ListInstr(Instruction):
     def __init__(self, *items: ListItem):
         self._items = items
-    
+
     @override
     def describe(self) -> str:
         descriptions: list[str] = []
