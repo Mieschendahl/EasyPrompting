@@ -7,7 +7,7 @@ python3 -m pip install <path to this project>
 
 If you do not want to clone this project you can also run:
 ```bash
-python3 -m pip install "easy_prompting @ git+https://github.com/Mieschendahl/EasyPrompting.git"
+python3 -m pip install "easy_prompting @ git+https://github.com/Proglang-TypeScript/EasyPrompting.git"
 ```
 
 After that you can import `easy_prompting` and use it in your code.
